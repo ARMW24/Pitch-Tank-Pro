@@ -318,6 +318,15 @@ export const FloatingEditor: React.FC<FloatingEditorProps> = ({
           </div>
         )}
       </div>
+
+      <div className="p-4 border-t-2 border-black bg-white flex justify-end">
+        <button 
+          onClick={onClose}
+          className="bg-black text-white px-6 py-2 font-mono font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors"
+        >
+          Save & Close
+        </button>
+      </div>
     </motion.div>
   );
 };

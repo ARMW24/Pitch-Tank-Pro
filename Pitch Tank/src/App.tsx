@@ -258,10 +258,56 @@ function App() {
          {view === 'editor' && activeProject && (
             <EditorView 
                project={activeProject}
-               onBack={() => setView('dashboard')}
-               onUpdateProject={updateProject}
-               onPreview={(sid) => { setActiveSid(sid); setView('preview'); }}
-               onOpenAIKnowledge={() => { setProjectToEdit(activeProject); setIsAIKnowledgeModalOpen(true); }}
+               activeSid={activeSid}
+               setActiveSid={setActiveSid}
+               isSidebarOpen={true}
+               setIsSidebarOpen={() => {}}
+               setView={setView}
+               setModal={(m) => {
+                 if (m.type === 'share') setIsShareModalOpen(true);
+                 if (m.type === 'aiKnowledge') setIsAIKnowledgeModalOpen(true);
+               }}
+               updateActiveSlide={(field, val) => {
+                 const newSlides = activeProject.slides.map(s => 
+                   s.id === (activeSid || activeProject.slides[0]?.id) ? { ...s, [field]: val } : s
+                 );
+                 updateProject(activeProject.id, { slides: newSlides });
+               }}
+               deleteSlide={(sid) => {
+                 const newSlides = activeProject.slides.filter(s => s.id !== sid);
+                 updateProject(activeProject.id, { slides: newSlides });
+               }}
+               onDragStart={() => {}}
+               onDragOver={() => {}}
+               onDrop={() => {}}
+               captureHistory={() => {}}
+               handleUndo={() => {}}
+               handleRedo={() => {}}
+               handleFileUpload={async (e) => {
+                 const files = Array.from(e.target.files || []) as File[];
+                 if (!files.length) return;
+                 const newSlides = [...activeProject.slides];
+                 for (const file of files) {
+                   const path = `users/${user?.id}/slides/${Date.now()}_${file.name}`;
+                   const { data } = await supabase.storage.from('assets').upload(path, file);
+                   if (data) {
+                     const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
+                     newSlides.push({
+                       id: Date.now() + Math.random(),
+                       title: file.name,
+                       content: '',
+                       imageUrl: publicUrl
+                     });
+                   }
+                 }
+                 updateProject(activeProject.id, { slides: newSlides });
+               }}
+               user={user}
+               isRecording={false}
+               handleStartRecording={() => {}}
+               handleStopRecording={() => {}}
+               handleAudioUpload={() => {}}
+               audioInputRef={React.createRef()}
             />
          )}
 
