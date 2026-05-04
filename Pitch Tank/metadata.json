@@ -1,0 +1,6 @@
+{
+  "name": "Pitch Flow Editor",
+  "description": "An interactive presentation application with YouTube markers, voice narration, and sequence flow features.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}

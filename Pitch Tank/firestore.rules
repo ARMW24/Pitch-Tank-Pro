@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidId(id) { 
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['userId', 'name', 'slides', 'createdAt', 'updatedAt']) 
+        && data.keys().size() >= 5 && data.keys().size() <= 7
+        && data.userId == request.auth.uid
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && (!('pinCode' in data) || data.pinCode is string)
+        && data.slides is list
+        && (!('aiKnowledgeFiles' in data) || data.aiKnowledgeFiles is list)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isProjectOwner(projectId) {
+      return isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+    }
+
+    match /pinCodes/{pinCode} {
+      allow get: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /projects/{projectId} {
+      allow get: if isValidId(projectId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() 
+        && isValidId(projectId)
+        && isValidProject(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+        
+      allow update: if isSignedIn()
+        && isValidId(projectId)
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'slides', 'pinCode', 'aiKnowledgeFiles', 'updatedAt'])
+        && incoming().name is string && incoming().name.size() > 0 && incoming().name.size() <= 200
+        && (!('pinCode' in incoming()) || (incoming().pinCode is string && incoming().pinCode.size() <= 50))
+        && incoming().slides is list
+        && (!('aiKnowledgeFiles' in incoming()) || incoming().aiKnowledgeFiles is list)
+        && incoming().updatedAt == request.time;
+        
+      allow delete: if isSignedIn() && isValidId(projectId) && existing().userId == request.auth.uid;
+
+      match /sessions/{sessionId} {
+         allow create: if isValidId(sessionId)
+           && incoming().keys().hasAll(['name', 'email', 'startedAt', 'lastPing', 'timeSpent', 'hasFeedback'])
+           && incoming().name is string && incoming().name.size() <= 200
+           && incoming().email is string && incoming().email.size() <= 200
+           && incoming().startedAt is number
+           && incoming().lastPing is number
+           && incoming().timeSpent is number
+           && incoming().hasFeedback is bool;
+           
+         allow update: if isValidId(sessionId)
+           && incoming().diff(existing()).affectedKeys().hasOnly(['lastPing', 'timeSpent', 'hasFeedback'])
+           && (!('lastPing' in incoming()) || incoming().lastPing is number)
+           && (!('timeSpent' in incoming()) || incoming().timeSpent is number)
+           && (!('hasFeedback' in incoming()) || incoming().hasFeedback is bool);
+           
+         allow read: if isProjectOwner(projectId);
+      }
+    }
+  }
+}

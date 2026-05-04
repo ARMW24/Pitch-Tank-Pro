@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A pitch presentation project.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "pinCode": { "type": "string" },
+        "slides": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "name", "slides", "createdAt", "updatedAt"]
+    },
+    "Session": {
+       "title": "Session",
+       "description": "A tracking log session for a visitor viewing the pitch room",
+       "type": "object",
+       "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "startedAt": { "type": "number" },
+          "lastPing": { "type": "number" },
+          "timeSpent": { "type": "number" },
+          "hasFeedback": { "type": "boolean" }
+       },
+       "required": ["name", "email", "startedAt", "lastPing", "timeSpent", "hasFeedback"]
+    }
+  },
+  "firestore": {
+    "projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "User's pitch projects."
+    },
+    "projects/{projectId}/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/Session" },
+      "description": "Tracking logs for a given pitch room."
+    }
+  }
+}
