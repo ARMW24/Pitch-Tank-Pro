@@ -158,9 +158,10 @@ function App() {
              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <button 
                    onClick={signInWithGoogle}
-                   className="bg-black text-white px-10 py-6 border-2 border-black font-mono font-bold uppercase tracking-widest shadow-[8px_8px_0_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0_0_#000] transition-all flex items-center justify-center gap-3"
+                   className="bg-white text-black px-10 py-6 border-2 border-black font-mono font-bold uppercase tracking-widest shadow-[8px_8px_0_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0_0_#000] transition-all flex items-center justify-center gap-3"
                 >
-                   <Zap className="fill-current"/> Build Your Room
+                   <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" /> 
+                   Sign up with Google
                 </button>
              </div>
           </div>
