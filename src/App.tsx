@@ -342,9 +342,18 @@ function App() {
                  const newSlides = [...activeProject.slides];
                  for (const file of files) {
                    const path = `users/${user?.id}/slides/${Date.now()}_${file.name}`;
-                   const { data } = await supabase.storage.from('assets').upload(path, file);
+                   console.log('Uploading slide to Supabase:', path);
+                   const { data, error } = await supabase.storage.from('assets').upload(path, file);
+                   
+                   if (error) {
+                     console.error('Supabase Upload Error:', error);
+                     continue;
+                   }
+
                    if (data) {
                      const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
+                     console.log('Slide Public URL:', publicUrl);
+                     
                      const newId = String(Date.now() + Math.random());
                      newSlides.push({
                        id: newId,

@@ -154,8 +154,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
             </div>
          </div>
       </div>
-    </div>
-
+      
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <AnimatePresence>
           {isEditorOpen && (
@@ -181,18 +180,23 @@ export const EditorView: React.FC<EditorViewProps> = ({
         </AnimatePresence>
 
         {/* Main Preview Area */}
-        <div className={`flex-1 flex flex-col overflow-hidden justify-center relative z-10 w-full h-full min-h-[0] ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
-           <div className={`w-full flex-1 min-h-[0] ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[8px_8px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
+        <div className={`flex-1 flex flex-col overflow-hidden relative z-10 w-full h-full min-h-[0] ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
+           <div className={`w-full flex-1 min-h-[0] ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
               {!isFrameless && (
-                <div className="h-8 border-b-2 border-black bg-[#F4F4F1] flex items-center px-4 justify-between shrink-0">
+                <div className="h-10 border-b-2 border-black bg-[#F4F4F1] flex items-center px-4 justify-between shrink-0">
                   <div className="flex gap-2">
-                    <div className="w-2.5 h-2.5 border border-black rounded-full bg-white"></div>
-                    <div className="w-2.5 h-2.5 border border-black rounded-full bg-white"></div>
-                    <div className="w-2.5 h-2.5 border border-black rounded-full bg-white"></div>
+                    <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
+                    <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
+                    <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
                   </div>
-                  <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[9px] font-mono uppercase font-bold text-gray-500 hover:text-black">
-                    {fitToFrame ? 'Original Size' : 'Fit to Frame'}
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
+                      {fitToFrame ? 'ORIGINAL SIZE' : 'FIT TO FRAME'}
+                    </button>
+                    <button onClick={() => setIsFrameless(!isFrameless)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
+                      {isFrameless ? 'SHOW FRAME' : 'HIDE FRAME'}
+                    </button>
+                  </div>
                 </div>
               )}
               
@@ -212,69 +216,53 @@ export const EditorView: React.FC<EditorViewProps> = ({
                         alt={activeSlide.title} 
                       />
                     ) : (
-                      <div className="flex flex-col items-center gap-4 text-gray-700">
-                        <Layers size={48} className="opacity-20" />
-                        <p className="font-mono text-[10px] uppercase tracking-widest opacity-40">No Image Data</p>
+                      <div className="flex flex-col items-center gap-4 text-white/20">
+                        <Layers size={48} />
+                        <p className="font-mono text-[10px] uppercase tracking-widest">No Slide Media</p>
                       </div>
                     )}
                   </motion.div>
                 </AnimatePresence>
                 
-                {/* Visual Indicators for Markers */}
-                {[1, 2, 3].map(num => {
-                  const yt = activeSlide[`youtubeMarker${num}`];
-                  const gal = activeSlide[`galleryMarker${num}`];
-                  const note = activeSlide[`noteMarker${num}`];
-                  const doc = activeSlide[`docMarker${num}`];
-                  return (
-                    <React.Fragment key={num}>
-                      {yt && <div className="absolute z-30 pointer-events-none" style={{ left: `${yt.x}%`, top: `${yt.y}%` }}><div className="bg-red-600 w-4 h-4 rounded-full border-2 border-white -translate-x-1/2 -translate-y-1/2 shadow-lg"></div></div>}
-                      {gal && <div className="absolute z-30 pointer-events-none" style={{ left: `${gal.x}%`, top: `${gal.y}%` }}><div className="bg-blue-600 w-4 h-4 rounded-full border-2 border-white -translate-x-1/2 -translate-y-1/2 shadow-lg"></div></div>}
-                      {note && <div className="absolute z-30 pointer-events-none" style={{ left: `${note.x}%`, top: `${note.y}%` }}><div className="bg-yellow-400 w-4 h-4 rounded-full border-2 border-white -translate-x-1/2 -translate-y-1/2 shadow-lg"></div></div>}
-                      {doc && <div className="absolute z-30 pointer-events-none" style={{ left: `${doc.x}%`, top: `${doc.y}%` }}><div className="bg-purple-500 w-4 h-4 rounded-full border-2 border-white -translate-x-1/2 -translate-y-1/2 shadow-lg"></div></div>}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-
-              {/* Controls Overlay */}
-              <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end z-40 pointer-events-none">
-                 <div className="flex gap-4 pointer-events-auto">
-                    <button onClick={() => setIsFrameless(!isFrameless)} className="bg-black text-white p-3 rounded-full hover:scale-110 transition-transform shadow-lg border-2 border-white/20">
-                       <Maximize size={20} />
-                    </button>
-                    <div className="bg-white border-2 border-black flex items-center p-1 shadow-lg">
-                       <button onClick={handleUndo} className="p-2 hover:bg-black hover:text-white transition-colors border-r border-black/10"><Undo2 size={16}/></button>
+                {/* Floating Actions */}
+                <div className="absolute top-6 right-6 flex flex-col gap-3 z-40">
+                    <div className="bg-white border-2 border-black flex items-center p-1 shadow-[4px_4px_0_0_#000]">
+                       <button onClick={handleUndo} className="p-2 hover:bg-black hover:text-white transition-colors border-r-2 border-black"><Undo2 size={16}/></button>
                        <button onClick={handleRedo} className="p-2 hover:bg-black hover:text-white transition-colors"><Redo2 size={16}/></button>
                     </div>
-                 </div>
-                 
-                 <div className="flex flex-col items-end gap-4 pointer-events-auto">
-                    {activeSlide.audioUrl && (
-                       <div className="bg-white border-2 border-black p-3 shadow-lg flex items-center gap-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="font-mono text-[9px] font-black uppercase tracking-widest">Audio Narrative Linked</span>
-                          <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:bg-red-50 p-1"><X size={14}/></button>
-                       </div>
-                    )}
-                    <div className="flex gap-2">
-                       <button 
-                         onMouseDown={handleStartRecording} 
-                         onMouseUp={handleStopRecording}
-                         className={`flex items-center gap-3 px-6 py-3 border-2 border-black font-mono font-bold text-[10px] uppercase tracking-widest transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white shadow-lg'}`}
-                       >
-                         <Mic size={16} /> {isRecording ? 'Recording...' : 'Hold to Record Narrative'}
-                       </button>
-                       <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-3 border-2 border-black hover:bg-black hover:text-white transition-all shadow-lg">
-                          <Upload size={16} />
-                       </button>
-                       <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
-                    </div>
-                 </div>
+                </div>
+
+                <div className="absolute bottom-6 right-6 flex flex-col items-end gap-3 z-40">
+                   {activeSlide.audioUrl && (
+                      <div className="bg-white border-2 border-black px-3 py-2 shadow-[4px_4px_0_0_#000] flex items-center gap-3">
+                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                         <span className="font-mono text-[9px] font-black uppercase tracking-widest">Audio Narrative Linked</span>
+                         <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:scale-110"><X size={14}/></button>
+                      </div>
+                   )}
+                   <div className="flex gap-2 pointer-events-auto">
+                      <button 
+                        onMouseDown={handleStartRecording} 
+                        onMouseUp={handleStopRecording}
+                        className={`flex items-center gap-3 px-6 py-3 border-2 border-black font-mono font-bold text-[10px] uppercase tracking-widest transition-all shadow-[4px_4px_0_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1 ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+                      >
+                        <Mic size={16} /> {isRecording ? 'Recording...' : 'Record Voice'}
+                      </button>
+                      <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-3 border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1">
+                         <Upload size={16} />
+                      </button>
+                      <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
+                   </div>
+                </div>
               </div>
-              {activeSlide.showNarrative && activeSlide.content && (
-                <div className="h-24 bg-black/90 border-t-2 border-black p-4 flex items-center justify-center text-center">
-                   <p className="text-white font-mono text-xs uppercase tracking-widest leading-relaxed max-w-2xl">{activeSlide.content}</p>
+
+              {/* Dedicated Narrative Bar - Fully Separated Below Preview */}
+              {activeSlide.showNarrative && (
+                <div className="h-24 bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative overflow-hidden">
+                   <div className="absolute top-0 left-6 -translate-y-1/2 bg-white border-2 border-black px-2 py-0.5 font-mono text-[8px] font-black uppercase tracking-widest">Narrative Detail</div>
+                   <p className="text-white font-mono text-xs uppercase tracking-[0.15em] leading-relaxed max-w-4xl text-center italic opacity-80">
+                      {activeSlide.content || "No narrative context provided for this slide..."}
+                   </p>
                 </div>
               )}
            </div>
@@ -293,9 +281,9 @@ export const EditorView: React.FC<EditorViewProps> = ({
            </div>
            
            <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar-horizontal flex items-center px-8 gap-4 bg-[#F4F4F1]">
-              <label className="shrink-0 flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-black/20 hover:border-black hover:bg-white cursor-pointer transition-all gap-2 group">
+            <label className="shrink-0 flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-black/20 hover:border-black hover:bg-white cursor-pointer transition-all gap-2 group bg-white shadow-[4px_4px_0_0_rgba(0,0,0,0.05)] hover:shadow-[4px_4px_0_0_#000]">
                  <div className="bg-black text-white p-2 group-hover:scale-110 transition-transform"><Plus size={16}/></div>
-                 <span className="text-[8px] font-mono font-bold uppercase tracking-widest">Add Flow</span>
+                 <span className="text-[8px] font-mono font-bold uppercase tracking-widest">Add Media</span>
                  <input type="file" multiple accept="image/*,application/pdf" className="hidden" onChange={handleFileUpload} />
               </label>
 
