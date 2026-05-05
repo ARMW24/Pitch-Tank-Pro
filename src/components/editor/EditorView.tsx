@@ -362,6 +362,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
                           src={activeSlide.imageUrl} 
                           className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
                           alt={activeSlide.title} 
+                          fetchPriority="high"
+                          decoding="sync"
                         />
                         
                         {/* Interactive Markers Rendering */}

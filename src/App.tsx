@@ -177,25 +177,22 @@ function App() {
     setError('');
     
     try {
-      const pid = await findProjectByPin(pin.toUpperCase());
-      if (pid) {
+      const project = await findProjectByPin(pin.toUpperCase());
+      if (project) {
         const sessId = crypto.randomUUID();
-        // Record session
-        await supabase.from('sessions').insert({
+        // Record session asynchronously
+        supabase.from('sessions').insert({
           id: sessId,
-          project_id: pid,
+          project_id: project.id,
           name: visitorName || 'Anonymous VC',
           email: visitorEmail || 'no-email@vc.com',
           started_at: new Date().toISOString()
-        });
+        }).then(() => console.log('Session recorded')).catch(console.error);
         
         setVisitorSessionId(sessId);
-        const project = await getProject(pid);
-        if (project) {
-          setProjectToEdit(project);
-          setActivePid(pid);
-          setView('preview');
-        }
+        setProjectToEdit(project);
+        setActivePid(project.id);
+        setView('preview');
       } else {
         setError('Invalid Access Code');
       }

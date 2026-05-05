@@ -78,6 +78,20 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
     }
   }, [playAudio, currentSlide.id]);
 
+  // Preload next slides to improve performance
+  useEffect(() => {
+    if (slides && slides.length > 0) {
+      // Preload next 3 images
+      const nextSlides = slides.slice(slideIndex, slideIndex + 4);
+      nextSlides.forEach((slide: any) => {
+        if (slide.imageUrl) {
+          const img = new Image();
+          img.src = slide.imageUrl;
+        }
+      });
+    }
+  }, [slideIndex, slides]);
+
   const toggleAudio = () => {
     if (audioRef.current) {
       if (audioRef.current.paused) {
@@ -277,6 +291,9 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                           src={currentSlide.imageUrl} 
                           className="w-full h-full object-contain pointer-events-none select-none" 
                           alt={currentSlide.title} 
+                          fetchPriority="high"
+                          decoding="sync"
+                          loading="eager"
                           onDragStart={(e) => e.preventDefault()}
                         />
                       </div>

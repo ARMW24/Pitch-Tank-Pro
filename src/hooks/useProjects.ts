@@ -131,7 +131,7 @@ export function useProjects(user: User | null) {
   const findProjectByPin = async (pin: string) => {
     const { data, error } = await supabase
       .from('projects')
-      .select('id')
+      .select('*')
       .eq('pin_code', pin)
       .single();
 
@@ -140,7 +140,7 @@ export function useProjects(user: User | null) {
       return null;
     }
 
-    return data.id;
+    return transformProject(data);
   };
 
   const getProject = async (id: string) => {
