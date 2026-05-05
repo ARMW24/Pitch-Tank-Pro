@@ -246,13 +246,28 @@ function App() {
 
          {view === 'dashboard' && (
            <DashboardView 
+              user={user}
               projects={projects} 
               loading={projectsLoading}
-              onProjectClick={(pid) => { setActivePid(pid); setView('editor'); }}
               onNewProject={() => setIsNewProjectModalOpen(true)}
-              onDeleteProject={(p) => { setProjectToEdit(p); setIsDeleteModalOpen(true); }}
-              onShareProject={(p) => { setProjectToEdit(p); setIsShareModalOpen(true); }}
-              onTracking={() => setView('tracking')}
+              onCopyProject={async (p) => {
+                const pin = generateSecurePin();
+                const newProj = await createProject(`${p.name} (Copy)`, pin, p.slides);
+                if (newProj) {
+                  setActivePid(newProj.id);
+                  setView('editor');
+                }
+              }}
+              onDeleteProject={(pid) => {
+                const proj = projects.find(p => p.id === pid);
+                if (proj) {
+                  setProjectToEdit(proj);
+                  setIsDeleteModalOpen(true);
+                }
+              }}
+              onOpenProject={(pid) => { setActivePid(pid); setView('editor'); }}
+              onPreviewProject={(pid) => { setActivePid(pid); setView('preview'); }}
+              findProjectByPin={findProjectByPin}
            />
          )}
 
