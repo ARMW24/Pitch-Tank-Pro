@@ -354,10 +354,10 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="w-full h-full flex items-center justify-center relative"
+                    className="w-full h-full flex items-center justify-center relative min-h-0"
                   >
                     {activeSlide.imageUrl ? (
-                      <div className="w-full h-full relative z-10">
+                      <div className="w-full h-full relative z-10 min-h-0">
                         <img 
                           src={activeSlide.imageUrl} 
                           className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
