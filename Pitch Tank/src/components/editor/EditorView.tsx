@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, LayoutDashboard, Settings2, Eye, 
   Share2, FileText, Cpu, Trash2, ImageIcon, Play, Plus, 
   Maximize, Undo2, Redo2, Layers, Youtube, Send, X, Upload,
-  Mic, ShieldCheck
+  Mic, ShieldCheck, LogOut
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { FloatingEditor } from './FloatingEditor';
@@ -33,6 +33,7 @@ interface EditorViewProps {
   handleStopRecording: () => void;
   handleAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   audioInputRef: React.RefObject<HTMLInputElement>;
+  onLogout: () => void;
 }
 
 export const EditorView: React.FC<EditorViewProps> = ({
@@ -57,7 +58,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
   handleStartRecording,
   handleStopRecording,
   handleAudioUpload,
-  audioInputRef
+  audioInputRef,
+  onLogout
 }) => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [timelineHeight, setTimelineHeight] = useState(140);
@@ -135,6 +137,12 @@ export const EditorView: React.FC<EditorViewProps> = ({
               <Cpu size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
               {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">AI Knowledge</span>}
             </button>
+            <div className="mt-auto border-t-2 border-black pt-4">
+               <button onClick={onLogout} className="flex items-center gap-4 px-5 py-3 text-red-500 hover:bg-red-500 hover:text-white transition-all w-full text-left group">
+                  <LogOut size={18} className="shrink-0" />
+                  {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">Logout</span>}
+               </button>
+            </div>
          </div>
       </div>
 
@@ -254,6 +262,11 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     </div>
                  </div>
               </div>
+              {activeSlide.showNarrative && activeSlide.content && (
+                <div className="h-24 bg-black/90 border-t-2 border-black p-4 flex items-center justify-center text-center">
+                   <p className="text-white font-mono text-xs uppercase tracking-widest leading-relaxed max-w-2xl">{activeSlide.content}</p>
+                </div>
+              )}
            </div>
         </div>
 

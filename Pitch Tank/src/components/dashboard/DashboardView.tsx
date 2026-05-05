@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Layers, Copy, Trash2, LayoutDashboard, Search } from 'lucide-react';
+import { Plus, Layers, Copy, Trash2, LayoutDashboard, Search, LogOut } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { User } from '@supabase/supabase-js';
 
@@ -13,6 +13,7 @@ interface DashboardViewProps {
   onOpenProject: (projectId: string) => void;
   onPreviewProject: (projectId: string) => void;
   findProjectByPin: (pin: string) => Promise<string | null>;
+  onLogout: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -24,7 +25,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onDeleteProject,
   onOpenProject,
   onPreviewProject,
-  findProjectByPin
+  findProjectByPin,
+  onLogout
 }) => {
   const [homeError, setHomeError] = useState("");
   const [searching, setSearching] = useState(false);
@@ -58,12 +60,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   return (
-    <div className="flex-1 bg-[#F4F4F1] p-6 lg:p-12 overflow-y-auto md:border-l-2 border-black relative">
+    <div className="flex-1 bg-[#F4F4F1] p-6 lg:p-12 overflow-y-auto relative">
       <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
       <div className="max-w-7xl mx-auto relative z-10">
-        <header className="mb-8 lg:mb-16 flex flex-col gap-2 border-b-2 border-black pb-8">
-          <p className="text-[10px] font-mono tracking-widest uppercase mb-1">Project Stream / Rooms</p>
-          <h1 className="text-5xl lg:text-7xl font-sans font-black tracking-tighter leading-none">INVESTMENT<br/>ROOMS</h1>
+        <header className="mb-8 lg:mb-16 flex flex-col md:flex-row md:items-end justify-between border-b-2 border-black pb-8 gap-6">
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+               <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-serif font-black italic">PT</div>
+               <span className="font-serif font-black italic uppercase tracking-tighter text-xl">Pitch Tank</span>
+            </div>
+            <p className="text-[10px] font-mono tracking-widest uppercase mb-1">Project Stream / Rooms</p>
+            <h1 className="text-5xl lg:text-7xl font-sans font-black tracking-tighter leading-none">INVESTMENT<br/>ROOMS</h1>
+          </div>
+          <div className="flex gap-3">
+             <button onClick={onNewProject} className="bg-black text-white px-6 py-3 font-mono font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all shadow-[4px_4px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1">New Room</button>
+             <button onClick={onLogout} className="border-2 border-black px-6 py-3 font-mono font-bold text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Logout</button>
+          </div>
         </header>
 
 

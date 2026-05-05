@@ -58,6 +58,8 @@ function App() {
   const [joining, setJoining] = useState(false);
 
   // Auto-detect room from URL
+  const audioInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const roomFromUrl = params.get('room');
@@ -233,35 +235,7 @@ function App() {
 
   // Logged In Router
   return (
-    <div className="h-screen bg-[#F4F4F1] flex flex-col md:flex-row overflow-hidden">
-      {/* Sidebar - Only show in Dashboard/Editor/Tracking */}
-       {(view === 'dashboard' || view === 'editor' || view === 'tracking') && (
-        <aside 
-          className={`bg-black flex flex-col items-center py-10 border-r-2 border-black gap-10 z-50 transition-all duration-300 ${isSidebarExpanded ? 'w-64' : 'w-24'}`}
-        >
-          <div className="flex items-center w-full px-6 gap-4 cursor-pointer" onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}>
-            <div className="w-12 h-12 bg-white text-black flex items-center justify-center font-serif font-black text-xl italic flex-shrink-0">PT</div>
-            {isSidebarExpanded && <span className="text-white font-serif font-black italic text-xl uppercase tracking-tighter">Pitch Tank</span>}
-          </div>
-          
-          <nav className="flex flex-1 flex-col gap-8 w-full">
-             <button onClick={() => setView('dashboard')} className={`flex items-center gap-4 px-6 py-3 transition-all ${view === 'dashboard' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}>
-               <Layout size={24} className="flex-shrink-0"/>
-               {isSidebarExpanded && <span className="font-mono text-[10px] uppercase font-bold tracking-widest">Dashboard</span>}
-             </button>
-             <button onClick={() => setView('tracking')} className={`flex items-center gap-4 px-6 py-3 transition-all ${view === 'tracking' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}>
-               <Target size={24} className="flex-shrink-0"/>
-               {isSidebarExpanded && <span className="font-mono text-[10px] uppercase font-bold tracking-widest">Tracking</span>}
-             </button>
-          </nav>
-
-          <button onClick={handleSignOut} className="flex items-center gap-4 px-6 py-3 w-full text-red-500 hover:bg-red-500 hover:text-white transition-all">
-            <LogOut size={24} className="flex-shrink-0"/>
-            {isSidebarExpanded && <span className="font-mono text-[10px] uppercase font-bold tracking-widest">Logout</span>}
-          </button>
-        </aside>
-       )}
-
+    <div className="h-screen bg-[#F4F4F1] flex flex-col overflow-hidden">
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0">
          {view === 'landing' && user && (
@@ -295,6 +269,7 @@ function App() {
               onOpenProject={(pid) => { setActivePid(pid); setView('editor'); }}
               onPreviewProject={(pid) => { setActivePid(pid); setView('preview'); }}
               findProjectByPin={findProjectByPin}
+              onLogout={handleSignOut}
            />
          )}
 
@@ -303,13 +278,14 @@ function App() {
                project={activeProject}
                activeSid={activeSid}
                setActiveSid={setActiveSid}
-               isSidebarOpen={true}
-               setIsSidebarOpen={() => {}}
-               setView={setView}
-               setModal={(m) => {
-                 if (m.type === 'share') setIsShareModalOpen(true);
-                 if (m.type === 'aiKnowledge') setIsAIKnowledgeModalOpen(true);
-               }}
+                isSidebarOpen={isSidebarExpanded}
+                setIsSidebarOpen={setIsSidebarExpanded}
+                setView={setView}
+                setModal={(m) => {
+                  setProjectToEdit(activeProject);
+                  if (m.type === 'share') setIsShareModalOpen(true);
+                  if (m.type === 'aiKnowledge') setIsAIKnowledgeModalOpen(true);
+                }}
                updateActiveSlide={(field, val) => {
                  const newSlides = activeProject.slides.map(s => 
                    s.id === (activeSid || activeProject.slides[0]?.id) ? { ...s, [field]: val } : s
@@ -335,22 +311,27 @@ function App() {
                    const { data } = await supabase.storage.from('assets').upload(path, file);
                    if (data) {
                      const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
+                     const newId = Date.now() + Math.random();
                      newSlides.push({
-                       id: Date.now() + Math.random(),
+                       id: newId,
                        title: file.name,
                        content: '',
                        imageUrl: publicUrl
                      });
+                     setActiveSid(newId);
                    }
                  }
-                 updateProject(activeProject.id, { slides: newSlides });
+                 await updateProject(activeProject.id, { slides: newSlides });
+                 if (newSlides.length > 0) {
+                   setActiveSid(newSlides[newSlides.length - 1].id);
+                 }
                }}
                user={user}
                isRecording={false}
                handleStartRecording={() => {}}
                handleStopRecording={() => {}}
                handleAudioUpload={() => {}}
-               audioInputRef={React.createRef()}
+               audioInputRef={audioInputRef}
             />
          )}
 
