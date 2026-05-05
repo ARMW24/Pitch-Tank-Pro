@@ -260,7 +260,7 @@ function App() {
 
              <div className="pt-8 flex flex-col items-center lg:items-start gap-4">
                 <button 
-                   onClick={() => signInWithGoogle()}
+                   onClick={() => signInWithGoogle().catch(err => alert("Login Error: " + err.message + "\n\nPlease ensure your Vercel URL is added to Supabase Redirect URLs."))}
                    className="bg-white border-2 border-black py-5 px-8 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[12px_12px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
                 >
                    <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
