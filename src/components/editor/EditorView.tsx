@@ -279,10 +279,9 @@ export const EditorView: React.FC<EditorViewProps> = ({
           )}
         </AnimatePresence>
 
-        <div className="flex-1 relative z-10 w-full min-h-[0]">
-           <div className={`absolute inset-0 flex items-center justify-center overflow-hidden ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
-              <div className={`aspect-[16/9] w-full max-w-full max-h-full ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
-                 {!isFrameless && (
+        <div className={`flex-1 flex flex-col overflow-hidden relative z-10 w-full min-h-[0] ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
+           <div className={`w-full flex-1 min-h-[0] ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
+              {!isFrameless && (
                 <div className="h-10 border-b-2 border-black bg-[#F4F4F1] flex items-center px-4 justify-between shrink-0">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
@@ -474,28 +473,26 @@ export const EditorView: React.FC<EditorViewProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* Dedicated Narrative Bar - Editable and Same Size as Preview Subtitles */}
+              {showNarrative && !activeSlide.isFixed && (
+                <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-6 md:px-12 shrink-0 relative py-4">
+                   <textarea 
+                      ref={narrativeRef}
+                      className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40 min-h-[64px] flex items-center justify-center"
+                      value={activeSlide.content || ''}
+                      onChange={(e) => {
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                        updateActiveSlide('content', e.target.value);
+                      }}
+                      placeholder="Type narrative subtitles here..."
+                      rows={1}
+                   />
+                </div>
+              )}
            </div>
         </div>
-        </div>
-
-        {/* Dedicated Narrative Bar - Editable and Pops Up Above Timeline */}
-        {showNarrative && !activeSlide.isFixed && (
-          <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-6 md:px-12 shrink-0 relative py-4 z-50">
-             <div className="w-full max-w-4xl flex items-center gap-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-white/50 shrink-0">Narrative Log</span>
-                <textarea 
-                   ref={narrativeRef}
-                   className="flex-1 bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none placeholder:text-white/30 max-h-[100px] overflow-y-auto custom-scrollbar-vertical"
-                   value={activeSlide.content || ''}
-                   onChange={(e) => {
-                     updateActiveSlide('content', e.target.value);
-                   }}
-                   placeholder="Type narrative subtitles here..."
-                   rows={2}
-                />
-             </div>
-          </div>
-        )}
 
         {/* Timeline Area */}
         <div 
