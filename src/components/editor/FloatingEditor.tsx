@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings2, ChevronLeft, ChevronRight, X, Youtube, ImageIcon, Upload, FileText } from 'lucide-react';
+import { Settings2, ChevronLeft, ChevronRight, X, Youtube, ImageIcon, Upload, FileText, RotateCcw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface FloatingEditorProps {
@@ -14,6 +14,8 @@ interface FloatingEditorProps {
   canPrev: boolean;
   canNext: boolean;
   userId: string | undefined;
+  handleUndo: () => void;
+  handleRedo: () => void;
 }
 
 export const FloatingEditor: React.FC<FloatingEditorProps> = ({
@@ -26,7 +28,9 @@ export const FloatingEditor: React.FC<FloatingEditorProps> = ({
   onNextSlide,
   canPrev,
   canNext,
-  userId
+  userId,
+  handleUndo,
+  handleRedo
 }) => {
   const [pos, setPos] = useState({ x: window.innerWidth - 440, y: 80 });
   const [isDragging, setIsDragging] = useState(false);
@@ -121,6 +125,14 @@ export const FloatingEditor: React.FC<FloatingEditorProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
+           <div className="flex items-center gap-1 border-r-2 border-black pr-2 mr-2">
+              <button onClick={handleUndo} className="p-1 hover:bg-black hover:text-white transition-colors" title="Undo">
+                 <RotateCcw size={16} className="scale-x-[-1]" />
+              </button>
+              <button onClick={handleRedo} className="p-1 hover:bg-black hover:text-white transition-colors" title="Redo">
+                 <RotateCcw size={16} />
+              </button>
+           </div>
            <div className="flex items-center border-r-2 border-black pr-2 mr-2">
               <button 
                 onClick={onPrevSlide} 

@@ -116,6 +116,39 @@ function App() {
   const audioInputRef = useRef<HTMLInputElement>(null);
   const draggedIdxRef = useRef<number | null>(null);
 
+  // History State for Undo/Redo
+  const [history, setHistory] = useState<any[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  const captureHistory = (slides: any[]) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(slides)));
+    if (newHistory.length > 20) {
+      newHistory.shift();
+    } else {
+      setHistoryIndex(newHistory.length - 1);
+    }
+    setHistory(newHistory);
+  };
+
+  const handleUndo = () => {
+    const activeProject = projects.find(p => p.id === activePid) || projectToEdit;
+    if (historyIndex > 0 && activeProject) {
+      const prevSlides = history[historyIndex - 1];
+      updateProject(activeProject.id, { slides: prevSlides });
+      setHistoryIndex(historyIndex - 1);
+    }
+  };
+
+  const handleRedo = () => {
+    const activeProject = projects.find(p => p.id === activePid) || projectToEdit;
+    if (historyIndex < history.length - 1 && activeProject) {
+      const nextSlides = history[historyIndex + 1];
+      updateProject(activeProject.id, { slides: nextSlides });
+      setHistoryIndex(historyIndex + 1);
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const roomFromUrl = params.get('room');
@@ -345,12 +378,16 @@ function App() {
                  if (m.type === 'aiKnowledge') setIsAIKnowledgeModalOpen(true);
                }}
                updateActiveSlide={(field, val) => {
+                 if (historyIndex === -1) captureHistory(activeProject.slides); // Initial state
+                 captureHistory(activeProject.slides);
                  const newSlides = activeProject.slides.map(s => 
                    s.id === (activeSid || activeProject.slides[0]?.id) ? { ...s, [field]: val } : s
                  );
                  updateProject(activeProject.id, { slides: newSlides });
                }}
                deleteSlide={(sid) => {
+                 if (historyIndex === -1) captureHistory(activeProject.slides);
+                 captureHistory(activeProject.slides);
                  const newSlides = activeProject.slides.filter(s => s.id !== sid);
                  updateProject(activeProject.id, { slides: newSlides });
                }}
@@ -380,9 +417,12 @@ function App() {
                  updateProject(activeProject.id, { slides: newSlides });
                  draggedIdxRef.current = null;
                }}
-               captureHistory={() => {}}
-               handleUndo={() => {}}
-               handleRedo={() => {}}
+               captureHistory={() => {
+                 if (historyIndex === -1) captureHistory(activeProject.slides);
+                 captureHistory(activeProject.slides);
+               }}
+               handleUndo={handleUndo}
+               handleRedo={handleRedo}
                handleFileUpload={async (e) => {
                  const files = Array.from(e.target.files || []) as File[];
                  if (!files.length) return;
@@ -484,11 +524,15 @@ function App() {
                initialSid={activeSid}
                visitorSessionId={visitorSessionId}
                onUpdateSlide={(sid, field, val) => {
+                 if (historyIndex === -1) captureHistory(activeProject.slides);
+                 captureHistory(activeProject.slides);
                  const newSlides = activeProject.slides.map(s => 
                    s.id === sid ? { ...s, [field]: val } : s
                  );
                  updateProject(activeProject.id, { slides: newSlides });
                }}
+               handleUndo={handleUndo}
+               handleRedo={handleRedo}
             />
          )}
       </main>

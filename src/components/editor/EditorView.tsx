@@ -123,7 +123,21 @@ export const EditorView: React.FC<EditorViewProps> = ({
     }
   };
 
-  const handleStartRecording = async () => {
+  const handleToggleRecording = async () => {
+    if (isRecording) {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+      }
+      return;
+    }
+    
+    // Single audio rule
+    if (activeSlide.audioUrl) {
+      const confirmReplace = window.confirm("Audio already exists for this slide. Do you want to replace it?");
+      if (!confirmReplace) return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -163,11 +177,12 @@ export const EditorView: React.FC<EditorViewProps> = ({
     }
   };
 
-  const handleStopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+  const handleUploadClick = () => {
+    if (activeSlide.audioUrl) {
+      const confirmReplace = window.confirm("Audio already exists for this slide. Do you want to replace it?");
+      if (!confirmReplace) return;
     }
+    audioInputRef.current?.click();
   };
 
   const handleMarkerDragEnd = (e: any, info: any, markerKey: string) => {
@@ -258,6 +273,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
                onNextSlide={onNextSlide}
                canPrev={canPrev}
                canNext={canNext}
+               handleUndo={handleUndo}
+               handleRedo={handleRedo}
             />
           )}
         </AnimatePresence>
@@ -297,15 +314,19 @@ export const EditorView: React.FC<EditorViewProps> = ({
                         )}
                      </div>
                      <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
+                        <button onClick={handleUndo} className="bg-white text-black p-1.5 border-2 border-transparent hover:border-black transition-all" title="Undo">
+                           <RotateCcw size={14} className="scale-x-[-1]" />
+                        </button>
+                        <button onClick={handleRedo} className="bg-white text-black p-1.5 border-2 border-transparent hover:border-black transition-all" title="Redo">
+                           <RotateCcw size={14} />
+                        </button>
                         <button 
-                          onMouseDown={handleStartRecording} 
-                          onMouseUp={handleStopRecording}
-                          onMouseLeave={handleStopRecording}
+                          onClick={handleToggleRecording} 
                           className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
                         >
                           <Mic size={14} /> {isRecording ? 'REC...' : 'REC'}
                         </button>
-                        <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all">
+                        <button onClick={handleUploadClick} className="bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all">
                            <Upload size={14} />
                         </button>
                         <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
@@ -354,7 +375,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                             <React.Fragment key={num}>
                                {ytMarker && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                    <motion.div key={`${ytMarker.x}-${ytMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
                                       <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                         <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
                                       </div>
@@ -363,7 +384,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                )}
                                {galMarker && galMarker.images && galMarker.images.length > 0 && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                    <motion.div key={`${galMarker.x}-${galMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
                                       <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                         <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
                                       </div>
@@ -372,7 +393,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                )}
                                {noteMarker && noteMarker.text && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                    <motion.div key={`${noteMarker.x}-${noteMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
                                       <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                         <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
                                       </div>
@@ -381,7 +402,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                )}
                                {docMarker && docMarker.url && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                    <motion.div key={`${docMarker.x}-${docMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
                                       <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                         <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
                                       </div>
