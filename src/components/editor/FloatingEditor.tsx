@@ -157,11 +157,12 @@ export const FloatingEditor: React.FC<FloatingEditorProps> = ({
             <div className="space-y-2">
               <label className="text-[10px] font-mono font-bold uppercase tracking-widest border-l-4 border-black pl-2 block">Content</label>
               <textarea 
-                className="w-full bg-white border-2 border-black px-4 py-3 text-sm font-serif text-black focus:outline-none focus:bg-gray-50 transition-colors rounded-none min-h-[100px]"
+                className={`w-full bg-white border-2 border-black px-4 py-3 text-sm font-serif text-black focus:outline-none focus:bg-gray-50 transition-colors rounded-none min-h-[100px] ${slide.id === 'vc-feedback' ? 'bg-gray-100 cursor-not-allowed opacity-70' : ''}`}
                 value={slide.content || ''}
+                readOnly={slide.id === 'vc-feedback'}
                 onFocus={captureHistory}
                 onChange={(e) => onUpdate('content', e.target.value)}
-                placeholder="Slide text content..."
+                placeholder={slide.id === 'vc-feedback' ? "VCs will type their feedback in the Preview room." : "Slide text content..."}
               />
             </div>
           </div>

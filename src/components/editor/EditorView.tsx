@@ -190,13 +190,35 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
                     <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
-                      {fitToFrame ? 'ORIGINAL SIZE' : 'FIT TO FRAME'}
-                    </button>
-                    <button onClick={() => setIsFrameless(!isFrameless)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
-                      {isFrameless ? 'SHOW FRAME' : 'HIDE FRAME'}
-                    </button>
+                  <div className="flex items-center">
+                     {activeSlide.audioUrl && (
+                        <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
+                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                           <span className="font-mono text-[9px] font-black uppercase tracking-widest text-green-600">Audio Linked</span>
+                           <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:scale-110"><X size={12}/></button>
+                        </div>
+                     )}
+                     <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
+                        <button 
+                          onMouseDown={handleStartRecording} 
+                          onMouseUp={handleStopRecording}
+                          className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+                        >
+                          <Mic size={14} /> {isRecording ? 'Recording...' : 'Record Voice'}
+                        </button>
+                        <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all">
+                           <Upload size={14} />
+                        </button>
+                        <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
+                     </div>
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
+                        {fitToFrame ? 'ORIGINAL SIZE' : 'FIT TO FRAME'}
+                      </button>
+                      <button onClick={() => setIsFrameless(!isFrameless)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
+                        {isFrameless ? 'SHOW FRAME' : 'HIDE FRAME'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -234,25 +256,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 </div>
 
                 <div className="absolute bottom-6 right-6 flex flex-col items-end gap-3 z-40">
-                   {activeSlide.audioUrl && (
-                      <div className="bg-white border-2 border-black px-3 py-2 shadow-[4px_4px_0_0_#000] flex items-center gap-3">
-                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                         <span className="font-mono text-[9px] font-black uppercase tracking-widest">Audio Narrative Linked</span>
-                         <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:scale-110"><X size={14}/></button>
-                      </div>
-                   )}
                    <div className="flex gap-2 pointer-events-auto">
-                      <button 
-                        onMouseDown={handleStartRecording} 
-                        onMouseUp={handleStopRecording}
-                        className={`flex items-center gap-3 px-6 py-3 border-2 border-black font-mono font-bold text-[10px] uppercase tracking-widest transition-all shadow-[4px_4px_0_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1 ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
-                      >
-                        <Mic size={16} /> {isRecording ? 'Recording...' : 'Record Voice'}
-                      </button>
-                      <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-3 border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1">
-                         <Upload size={16} />
-                      </button>
-                      <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
                    </div>
                 </div>
               </div>

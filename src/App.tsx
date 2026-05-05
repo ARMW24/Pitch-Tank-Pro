@@ -347,6 +347,7 @@ function App() {
                    
                    if (error) {
                      console.error('Supabase Upload Error:', error);
+                     alert(`Failed to upload ${file.name}: ${error.message}`);
                      continue;
                    }
 

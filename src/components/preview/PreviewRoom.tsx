@@ -135,7 +135,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   };
 
   return (
-    <div className={`flex-1 ${isFrameless ? 'bg-black' : 'bg-[#F4F4F1]'} text-black flex flex-col relative h-full overflow-hidden`}>
+    <div className={`flex-1 bg-[#F4F4F1] text-black flex flex-col relative h-full overflow-hidden`}>
       {!isFrameless && <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>}
       
       {!isFrameless && (
@@ -257,20 +257,14 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     {currentSlide.imageUrl ? (
                       <img src={currentSlide.imageUrl} className="w-full h-full object-contain relative z-10" alt={currentSlide.title} />
                     ) : (
-                      <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 ${isFrameless ? 'bg-black text-white' : 'bg-white text-black'}`}>
+                      <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>
                         <h1 className="text-[6vw] font-serif font-black uppercase mb-6 tracking-tighter italic leading-none">{currentSlide.title}</h1>
-                        <div className={`w-24 h-1 mb-8 mx-auto ${isFrameless ? 'bg-white/50' : 'bg-black'}`}></div>
+                        <div className={`w-24 h-1 mb-8 mx-auto bg-black`}></div>
                         {currentSlide.isFixed ? (
                           <textarea 
-                             className={`text-2xl font-mono leading-relaxed max-w-4xl w-full h-[60vh] text-center bg-transparent resize-none focus:outline-none custom-scrollbar-vertical ${isFrameless ? 'text-gray-300' : 'text-gray-600'}`} 
+                             className={`text-2xl font-mono leading-relaxed max-w-4xl w-full h-[60vh] text-center bg-transparent resize-none focus:outline-none custom-scrollbar-vertical text-gray-600`} 
                              value={currentSlide.content || ''}
-                             readOnly={(() => {
-                                const params = new URLSearchParams(window.location.search);
-                                const isVisitor = params.has('room');
-                                if (currentSlide.id === 'founder-note') return true;
-                                if (currentSlide.id === 'vc-feedback' && !isVisitor) return true;
-                                return false;
-                             })()}
+                             readOnly={false}
                              onChange={(e) => {
                                if (onUpdateSlide) {
                                   onUpdateSlide(currentSlide.id, 'content', e.target.value);
@@ -284,7 +278,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                              placeholder={currentSlide.id === 'founder-note' ? "Founder notes are typed in the editor..." : "Type VC feedback here..."}
                           />
                         ) : (
-                          <p className={`text-2xl font-mono leading-relaxed max-w-4xl whitespace-pre-wrap ${isFrameless ? 'text-gray-300' : 'text-gray-600'}`}>{currentSlide.content}</p>
+                          <p className={`text-2xl font-mono leading-relaxed max-w-4xl whitespace-pre-wrap text-gray-600`}>{currentSlide.content}</p>
                         )}
                       </div>
                     )}
