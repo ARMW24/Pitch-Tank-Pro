@@ -40,6 +40,7 @@ function App() {
   const [view, setView] = useState<'landing' | 'dashboard' | 'editor' | 'tracking' | 'preview'>('landing');
   const [activePid, setActivePid] = useState<string | null>(null);
   const [activeSid, setActiveSid] = useState<string | number | null>(null);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   
   // Modals state
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -64,6 +65,11 @@ function App() {
       handleDirectJoin(roomFromUrl);
     }
   }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setView('landing');
+  };
 
   const handleDirectJoin = async (pid: string) => {
     const project = await getProject(pid);
@@ -169,10 +175,11 @@ function App() {
           <div className="w-full max-w-md bg-white border-2 border-black p-10 shadow-[16px_16px_0_0_#000] space-y-8">
              <div className="flex items-center gap-4 border-b-2 border-black pb-6">
                 <Shield size={32} />
-                <h2 className="text-2xl font-serif font-black italic uppercase">Visitor Access</h2>
+                <h2 className="text-2xl font-serif font-black italic uppercase">Angel / VC Access</h2>
              </div>
              
              <div className="space-y-4">
+                <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-4">Enter the access code provided by the founder:</p>
                 <div className="relative">
                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                    <input 
@@ -210,6 +217,12 @@ function App() {
                    </button>
                 </div>
                 {error && <p className="text-red-600 font-mono text-[10px] uppercase font-bold text-center mt-4">{error}</p>}
+
+                <div className="pt-6 border-t-2 border-black mt-6">
+                   <p className="text-[10px] font-mono font-bold text-gray-400 uppercase leading-relaxed">
+                      Data is isolated by Supabase Account. Your pitch rooms are securely stored and private.
+                   </p>
+                </div>
              </div>
           </div>
 
@@ -222,18 +235,34 @@ function App() {
   return (
     <div className="h-screen bg-[#F4F4F1] flex flex-col md:flex-row overflow-hidden">
       {/* Sidebar - Only show in Dashboard/Editor/Tracking */}
-      {(view === 'dashboard' || view === 'editor' || view === 'tracking') && (
-        <aside className="w-full md:w-24 bg-black flex md:flex-col items-center py-4 md:py-10 border-b-2 md:border-b-0 md:border-r-2 border-black gap-6 md:gap-10 z-50 px-4 md:px-0">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-white text-black flex items-center justify-center font-serif font-black text-xl italic cursor-pointer" onClick={() => setView('dashboard')}>PT</div>
+       {(view === 'dashboard' || view === 'editor' || view === 'tracking') && (
+        <aside 
+          className={`bg-black flex flex-col items-center py-10 border-r-2 border-black gap-10 z-50 transition-all duration-300 ${isSidebarExpanded ? 'w-64' : 'w-24'}`}
+          onMouseEnter={() => setIsSidebarExpanded(true)}
+          onMouseLeave={() => setIsSidebarExpanded(false)}
+        >
+          <div className="flex items-center w-full px-6 gap-4 cursor-pointer" onClick={() => setView('dashboard')}>
+            <div className="w-12 h-12 bg-white text-black flex items-center justify-center font-serif font-black text-xl italic flex-shrink-0">PT</div>
+            {isSidebarExpanded && <span className="text-white font-serif font-black italic text-xl uppercase tracking-tighter">Pitch Tank</span>}
+          </div>
           
-          <nav className="flex flex-1 md:flex-col gap-4 md:gap-8 items-center justify-center md:justify-start">
-             <button onClick={() => setView('dashboard')} className={`p-3 transition-all ${view === 'dashboard' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`} title="Dashboard"><Layout size={24}/></button>
-             <button onClick={() => setView('tracking')} className={`p-3 transition-all ${view === 'tracking' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`} title="Tracking"><Target size={24}/></button>
+          <nav className="flex flex-1 flex-col gap-8 w-full">
+             <button onClick={() => setView('dashboard')} className={`flex items-center gap-4 px-6 py-3 transition-all ${view === 'dashboard' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}>
+               <Layout size={24} className="flex-shrink-0"/>
+               {isSidebarExpanded && <span className="font-mono text-[10px] uppercase font-bold tracking-widest">Dashboard</span>}
+             </button>
+             <button onClick={() => setView('tracking')} className={`flex items-center gap-4 px-6 py-3 transition-all ${view === 'tracking' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}>
+               <Target size={24} className="flex-shrink-0"/>
+               {isSidebarExpanded && <span className="font-mono text-[10px] uppercase font-bold tracking-widest">Tracking</span>}
+             </button>
           </nav>
 
-          <button onClick={signOut} className="p-3 text-red-500 hover:bg-red-500 hover:text-white transition-all" title="Logout"><LogOut size={24}/></button>
+          <button onClick={handleSignOut} className="flex items-center gap-4 px-6 py-3 w-full text-red-500 hover:bg-red-500 hover:text-white transition-all">
+            <LogOut size={24} className="flex-shrink-0"/>
+            {isSidebarExpanded && <span className="font-mono text-[10px] uppercase font-bold tracking-widest">Logout</span>}
+          </button>
         </aside>
-      )}
+       )}
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0">

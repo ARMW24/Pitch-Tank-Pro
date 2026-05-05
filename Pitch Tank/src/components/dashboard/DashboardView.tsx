@@ -66,24 +66,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <h1 className="text-5xl lg:text-7xl font-sans font-black tracking-tighter leading-none">INVESTMENT<br/>ROOMS</h1>
         </header>
 
-        <div className="bg-white border-2 border-black p-6 md:p-8 shadow-[8px_8px_0_0_#000] mb-8 lg:mb-12">
-           <h2 className="text-xl md:text-2xl font-black italic uppercase mb-2">Angel / VC Access</h2>
-           <p className="text-gray-500 font-mono text-xs uppercase tracking-widest mb-4">Enter the access code provided by the founder:</p>
-           <form className="flex flex-col sm:flex-row shadow-[4px_4px_0_0_#000] border-2 border-black" onSubmit={handlePinSubmit}>
-              <input name="code" className="flex-1 p-3 md:p-4 font-mono text-sm border-b-2 sm:border-b-0 sm:border-r-2 border-black focus:outline-none focus:bg-gray-50" placeholder="Paste Link or Code (e.g. A@7x9T&!)" />
-              <button type="submit" disabled={searching} className="bg-black text-white font-bold uppercase tracking-widest px-6 py-4 hover:bg-gray-800 transition-colors">
-                {searching ? "SEARCHING..." : "View Pitch"}
-              </button>
-           </form>
-           {homeError && <p className="mt-4 text-red-500 font-mono text-xs font-bold uppercase tracking-widest text-center">{homeError}</p>}
-        </div>
-
-        {!user && (
-           <div className="bg-yellow-100 border-2 border-yellow-500 p-6 mb-8 text-sm flex flex-col gap-2 shadow-[4px_4px_0_0_#eab308]">
-              <p className="text-xl uppercase italic font-black font-serif tracking-tight">Please log in to manage your Pitch Rooms</p>
-              <p className="text-xs font-mono mt-1 font-bold text-gray-700">Data is isolated by Supabase Account. Your pitch rooms are securely stored and private.</p>
-           </div>
-        )}
+        </header>
 
         {loading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4 bg-white border-2 border-black shadow-[8px_8px_0_0_#000]">
