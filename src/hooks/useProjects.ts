@@ -81,6 +81,13 @@ export function useProjects(user: User | null) {
   };
 
   const updateProject = async (id: string, updates: any) => {
+    // Optimistic update
+    const projectToUpdate = projects.find(p => p.id === id);
+    if (projectToUpdate) {
+      const optimisticProject = { ...projectToUpdate, ...updates };
+      setProjects(projects.map(p => p.id === id ? optimisticProject : p));
+    }
+
     // Map camelCase to snake_case for Supabase
     const supabaseUpdates: any = {};
     if (updates.name !== undefined) supabaseUpdates.name = updates.name;
@@ -97,11 +104,13 @@ export function useProjects(user: User | null) {
 
     if (error) {
       console.error('Error updating project:', error);
+      // Rollback optimistic update
+      fetchProjects();
       return null;
     }
 
     const updatedProject = transformProject(data);
-    setProjects(projects.map((p) => (p.id === id ? updatedProject : p)));
+    setProjects(prev => prev.map((p) => (p.id === id ? updatedProject : p)));
     return updatedProject;
   };
 

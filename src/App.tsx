@@ -340,6 +340,10 @@ function App() {
                  const files = Array.from(e.target.files || []) as File[];
                  if (!files.length) return;
                  const newSlides = [...activeProject.slides];
+                 let insertIndex = newSlides.findIndex(s => s.id === 'founder-note' || s.id === 'vc-feedback');
+                 if (insertIndex === -1) insertIndex = newSlides.length;
+                 
+                 let lastAddedId = null;
                  for (const file of files) {
                    const path = `users/${user?.id}/slides/${Date.now()}_${file.name}`;
                    console.log('Uploading slide to Supabase:', path);
@@ -356,17 +360,19 @@ function App() {
                      console.log('Slide Public URL:', publicUrl);
                      
                      const newId = String(Date.now() + Math.random());
-                     newSlides.push({
+                     newSlides.splice(insertIndex, 0, {
                        id: newId,
                        title: file.name,
                        content: '',
                        imageUrl: publicUrl
                      });
+                     insertIndex++;
+                     lastAddedId = newId;
                    }
                  }
                  await updateProject(activeProject.id, { slides: newSlides });
-                 if (newSlides.length > 0) {
-                   setActiveSid(newSlides[newSlides.length - 1].id);
+                 if (lastAddedId) {
+                   setActiveSid(lastAddedId);
                  }
                }}
                user={user}
@@ -422,11 +428,11 @@ function App() {
 
       <AIKnowledgeModal 
         isOpen={isAIKnowledgeModalOpen}
-        project={projectToEdit}
+        project={activeProject}
         onCancel={() => setIsAIKnowledgeModalOpen(false)}
         onSave={async (files) => {
-           if (projectToEdit) {
-              await updateProject(projectToEdit.id, { aiKnowledgeFiles: files });
+           if (activeProject) {
+              await updateProject(activeProject.id, { aiKnowledgeFiles: files });
            }
         }}
       />

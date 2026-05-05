@@ -271,7 +271,12 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                           <textarea 
                              className={`text-2xl font-mono leading-relaxed max-w-4xl w-full h-[60vh] text-center bg-transparent resize-none focus:outline-none custom-scrollbar-vertical text-gray-600`} 
                              value={currentSlide.content || ''}
-                             readOnly={false}
+                             readOnly={(() => {
+                                const params = new URLSearchParams(window.location.search);
+                                const isVisitor = params.has('room');
+                                if (currentSlide.id === 'founder-note' && isVisitor) return true;
+                                return false;
+                             })()}
                              onChange={(e) => {
                                if (onUpdateSlide) {
                                   onUpdateSlide(currentSlide.id, 'content', e.target.value);

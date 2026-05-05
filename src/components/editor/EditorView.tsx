@@ -223,7 +223,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 </div>
               )}
               
-              <div className="flex-1 w-full h-full overflow-hidden relative bg-black flex items-center justify-center min-h-0">
+              <div className="flex-1 w-full h-full overflow-hidden relative bg-[#F4F4F1] flex items-center justify-center min-h-0">
                 <AnimatePresence mode="wait">
                   <motion.div 
                     key={activeSlide.id}
@@ -238,8 +238,20 @@ export const EditorView: React.FC<EditorViewProps> = ({
                         className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
                         alt={activeSlide.title} 
                       />
+                    ) : activeSlide.isFixed ? (
+                      <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>
+                        <h1 className="text-[6vw] font-serif font-black uppercase mb-6 tracking-tighter italic leading-none">{activeSlide.title}</h1>
+                        <div className={`w-24 h-1 mb-8 mx-auto bg-black`}></div>
+                        <textarea 
+                           className={`text-2xl font-mono leading-relaxed max-w-4xl w-full h-[60vh] text-center bg-transparent resize-none focus:outline-none custom-scrollbar-vertical text-gray-600`} 
+                           value={activeSlide.content || ''}
+                           readOnly={activeSlide.id === 'vc-feedback'}
+                           placeholder={activeSlide.id === 'vc-feedback' ? "VCs will type their feedback in the Preview room." : "Type your notes here..."}
+                           onChange={(e) => updateActiveSlide('content', e.target.value)}
+                        />
+                      </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-4 text-white/20">
+                      <div className="flex flex-col items-center gap-4 text-black/20">
                         <Layers size={48} />
                         <p className="font-mono text-[10px] uppercase tracking-widest">No Slide Media</p>
                       </div>
@@ -261,15 +273,6 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 </div>
               </div>
 
-              {/* Dedicated Narrative Bar - Fully Separated Below Preview */}
-              {activeSlide.showNarrative && (
-                <div className="h-24 bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative overflow-hidden">
-                   <div className="absolute top-0 left-6 -translate-y-1/2 bg-white border-2 border-black px-2 py-0.5 font-mono text-[8px] font-black uppercase tracking-widest">Narrative Detail</div>
-                   <p className="text-white font-mono text-xs uppercase tracking-[0.15em] leading-relaxed max-w-4xl text-center italic opacity-80">
-                      {activeSlide.content || "No narrative context provided for this slide..."}
-                   </p>
-                </div>
-              )}
            </div>
         </div>
 
