@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Layers, FileText, ChevronRight, ChevronLeft, 
-  X, Send, Plus, LayoutDashboard, Eye, Share2, Lock,
+  X, Send, Plus, LayoutDashboard, Eye, Share2, Lock, Download,
   Trash2, ImageIcon, FileSearch, MonitorPlay, Youtube, Zap, 
   Copy, Settings2, MoveHorizontal, Cpu, Terminal, Headset, Mic, Undo2, Redo2,
   Upload, Play, Square, Maximize, Pause, RotateCcw, Check, ShieldCheck
@@ -1058,6 +1058,20 @@ export default function App() {
 
   const lastSavedProjectsRef = useRef(projects);
 
+  const exportProjectData = (project: any) => {
+    try {
+      const dataStr = JSON.stringify(project, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      const exportFileDefaultName = `${project.name.replace(/\s+/g, '_').toLowerCase()}_pitch_data.json`;
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    } catch (err) {
+      console.error("Export error:", err);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -1493,6 +1507,15 @@ export default function App() {
   const slides = activeProject?.slides || [];
   const activeSlide = slides.find((s: any) => String(s.id) === String(activeSid || slides[0]?.id)) || slides[0] || { title: 'Untitled', content: '', id: 'empty' };
 
+  if (loadingShared && !sharedProjectData && !activeProject) {
+     return (
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#F4F4F1] min-h-screen">
+          <div className="w-12 h-12 border-4 border-black border-t-transparent animate-spin rounded-full mb-4"></div>
+          <p className="font-mono text-xs uppercase tracking-widest font-black">Loading Pitch Data...</p>
+        </div>
+     );
+  }
+
   if (view === 'editor' && (!activeProject || (activeProject.slides.length === 0 && !isInitialLoading))) {
      return (
        <div className="flex-1 flex items-center justify-center bg-[#F4F4F1]">
@@ -1796,9 +1819,17 @@ export default function App() {
                <div className="absolute top-0 right-0 flex border-b-2 border-l-2 border-black bg-white group-hover:bg-[#F4F4F1] transition-colors">
                   <button onClick={(e) => {
                     e.stopPropagation();
+                    exportProjectData(project);
+                  }} title="Export Pitch Data" className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors">
+                    <Download size={16} />
+                  </button>
+                  <button onClick={(e) => {
+                    e.stopPropagation();
                     setModal({ type: 'copy', data: project });
-                  }} className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors"><Copy size={16} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'del', data: project.id }); }} className="p-3 text-black hover:bg-black hover:text-white transition-colors"><Trash2 size={16} /></button>
+                  }} title="Duplicate Room" className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors">
+                    <Copy size={16} />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'del', data: project.id }); }} title="Delete Room" className="p-3 text-black hover:bg-black hover:text-white transition-colors"><Trash2 size={16} /></button>
                </div>
                
                <div className="pt-6">
