@@ -147,12 +147,12 @@ function App() {
         <div className="max-w-6xl w-full flex flex-col lg:flex-row items-center justify-between gap-16 relative z-10 mt-12 lg:mt-24">
           
           <div className="flex-1 space-y-10 text-center lg:text-left">
-             <div className="inline-block bg-black text-white px-4 py-1 font-mono text-[10px] uppercase tracking-widest font-bold">Beta v2.4 • Supabase Integrated</div>
+             <div className="inline-block bg-black text-white px-4 py-1 font-mono text-[10px] uppercase tracking-widest font-bold">Beta v2.4</div>
              <h1 className="text-6xl md:text-8xl font-serif font-black italic uppercase leading-[0.85] tracking-tighter text-black">
                 Pitch <br/> <span className="text-outline">Tank</span>
              </h1>
              <p className="text-xl md:text-2xl font-mono text-gray-700 max-w-xl leading-relaxed">
-                The world's first <span className="font-bold underline decoration-4">Interactive Pitch Deck</span> with an integrated AI Founder Clone.
+                The world's first <span className="font-bold underline decoration-4">Interactive Pitch</span>
              </p>
              
              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -195,7 +195,7 @@ function App() {
                 <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Access PIN</label>
                 <div className="flex gap-3">
                    <input 
-                      className="flex-1 bg-white border-2 border-black px-6 py-4 text-xl font-mono font-bold tracking-[0.5em] uppercase outline-none focus:bg-gray-50"
+                      className="flex-1 min-w-0 bg-white border-2 border-black px-4 py-4 text-xl font-mono font-bold tracking-[0.2em] uppercase outline-none focus:bg-gray-50"
                       maxLength={6}
                       placeholder="XXXXXX"
                       value={pin}
