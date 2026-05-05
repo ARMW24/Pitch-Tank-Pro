@@ -195,7 +195,14 @@ function App() {
       setProjectToEdit(null);
     }
   };
+  // Auth Redirect: If user is logged in and on a public view, go to dashboard
+  useEffect(() => {
+    if (user && (view === 'landing' || view === 'login')) {
+      setView('dashboard');
+    }
+  }, [user, view]);
 
+  // Loading UI
   if (authLoading) {
     return (
       <div className="h-screen bg-[#F4F4F1] flex flex-col items-center justify-center font-mono uppercase text-xs tracking-widest gap-4">
@@ -205,8 +212,8 @@ function App() {
     );
   }
 
-  // Auth UI (Landing Page)
-  if (!user && (view === 'landing' || view === 'login')) {
+  // Auth UI (Landing Page / Login Page) - ONLY show if not logged in
+  if (!user) {
     if (view === 'login') {
       return (
         <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center justify-center relative overflow-hidden p-6">
@@ -328,13 +335,6 @@ function App() {
   return (
     <div className="h-screen bg-[#F4F4F1] flex flex-col overflow-hidden">
       <main className="flex-1 flex flex-col min-w-0">
-         {view === 'landing' && user && (
-           <div className="flex-1 flex flex-col items-center justify-center space-y-12 p-8 text-center">
-              <h2 className="text-5xl font-serif font-black italic uppercase text-black">Welcome Back, {user.email?.split('@')[0]}</h2>
-              <button onClick={() => setView('dashboard')} className="bg-black text-white px-12 py-6 border-2 border-black font-mono font-bold uppercase tracking-widest shadow-[8px_8px_0_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0_0_#000] transition-all">Go to Dashboard</button>
-           </div>
-         )}
-
          {view === 'dashboard' && (
            <DashboardView 
               user={user}
