@@ -286,10 +286,10 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     </div>
 
                     {currentSlide.imageUrl ? (
-                      <div className="w-full h-full relative z-10" onContextMenu={(e) => e.preventDefault()}>
+                      <div className="w-full h-full relative z-10 min-h-0" onContextMenu={(e) => e.preventDefault()}>
                         <img 
                           src={currentSlide.imageUrl} 
-                          className="w-full h-full object-contain pointer-events-none select-none" 
+                          className="absolute inset-0 max-w-full max-h-full m-auto object-contain pointer-events-none select-none" 
                           alt={currentSlide.title} 
                           fetchPriority="high"
                           decoding="sync"

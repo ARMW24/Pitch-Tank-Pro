@@ -360,7 +360,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                       <div className="w-full h-full relative z-10 min-h-0">
                         <img 
                           src={activeSlide.imageUrl} 
-                          className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
+                          className={`absolute inset-0 max-w-full max-h-full transition-all m-auto ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
                           alt={activeSlide.title} 
                           fetchPriority="high"
                           decoding="sync"
