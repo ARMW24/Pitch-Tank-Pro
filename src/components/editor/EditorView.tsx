@@ -204,7 +204,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                           onMouseUp={handleStopRecording}
                           className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
                         >
-                          <Mic size={14} /> {isRecording ? 'Recording...' : 'Record Voice'}
+                          <Mic size={14} /> {isRecording ? 'REC...' : 'REC'}
                         </button>
                         <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all">
                            <Upload size={14} />

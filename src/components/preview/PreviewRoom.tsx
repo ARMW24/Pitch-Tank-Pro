@@ -149,11 +149,6 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
           </div>
 
           <div className="flex gap-2 md:gap-4 items-center flex-wrap md:flex-nowrap justify-end">
-              <div className="flex items-center gap-1 bg-white border-2 border-black pl-1 mr-2 shrink-0">
-                  <button onClick={handlePrev} disabled={slideIndex === 0} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronLeft size={16}/></button>
-                  <span className="font-mono font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap pt-0.5 px-2">Pg {slideIndex + 1} / {slides.length}</span>
-                  <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronRight size={16}/></button>
-              </div>
               {currentSlide.audioUrl && (
                 <div className="flex items-center gap-1">
                   <button onClick={toggleAudio} className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title={isPlayingAudio ? "Pause" : "Play"}>
@@ -179,6 +174,12 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                 </label>
               </div>
               
+              <div className="flex items-center gap-1 bg-white border-2 border-black pl-1 shrink-0 ml-2">
+                  <button onClick={handlePrev} disabled={slideIndex === 0} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronLeft size={16}/></button>
+                  <span className="font-mono font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap pt-0.5 px-2">Pg {slideIndex + 1} / {slides.length}</span>
+                  <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronRight size={16}/></button>
+              </div>
+
               <div className="bg-white border-2 border-black flex items-center p-1 shrink-0">
                 <button 
                   onClick={() => setInteractiveMode(false)}
@@ -363,14 +364,15 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     })}
                   </div>
 
-                  {showSubtitles && currentSlide.content && (
-                    <div className={`w-full shrink-0 text-white px-4 py-3 md:px-6 md:py-4 text-center z-40 mt-0 md:mt-4 md:rounded-sm ${isFrameless ? 'bg-black/80 backdrop-blur-sm border-t border-white/20 relative' : 'bg-black shadow-[0_-4px_10px_rgba(0,0,0,0.2)] md:shadow-none border-t-2 md:border-2 border-white/10 md:border-transparent'}`}>
-                      <p className="font-serif italic text-sm md:text-lg leading-relaxed whitespace-pre-wrap">{currentSlide.content}</p>
-                    </div>
-                  )}
+
                 </motion.div>
               </AnimatePresence>
               
+              {showSubtitles && currentSlide.content && currentSlide.id !== 'founder-note' && currentSlide.id !== 'vc-feedback' && (
+                <div className="min-h-[96px] bg-black border-t-2 border-black flex flex-col items-center justify-center px-6 md:px-12 shrink-0 relative overflow-hidden">
+                   <p className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center py-4">{currentSlide.content}</p>
+                </div>
+              )}
             </div>
             
             {/* Overlays for Video, Gallery, Note, Doc */}

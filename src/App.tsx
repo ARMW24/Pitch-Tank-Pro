@@ -21,6 +21,61 @@ import { ShareModal } from './components/modals/ShareModal';
 import { ConfirmationModal } from './components/modals/ConfirmationModal';
 import { AIKnowledgeModal } from './components/modals/AIKnowledgeModal';
 
+import * as pdfjsLib from 'pdfjs-dist';
+// Initialize PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+const compressImage = async (file: Blob | File): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 1920;
+      const MAX_HEIGHT = 1080;
+      let width = img.width;
+      let height = img.height;
+      if (width > height) {
+        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+      } else {
+        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+      }
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(img.src);
+        blob ? resolve(blob) : reject(new Error('Canvas to Blob failed'));
+      }, 'image/webp', 0.85);
+    };
+    img.onerror = reject;
+  });
+};
+
+const extractPdfPages = async (file: File): Promise<Blob[]> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+  const blobs: Blob[] = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for crispness
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx!, viewport }).promise;
+    
+    // Convert to webp directly from canvas
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(b => b ? resolve(b) : reject(new Error('Failed to create blob from PDF page')), 'image/webp', 0.85);
+    });
+    
+    // Double compress to ensure it meets max dimensions
+    const compressedBlob = await compressImage(blob);
+    blobs.push(compressedBlob);
+  }
+  return blobs;
+};
+
 // Utils
 import { generateSecurePin, appendFixedSlides } from './utils/helpers';
 import { supabase } from './lib/supabase';
@@ -40,7 +95,7 @@ function App() {
   const [view, setView] = useState<'landing' | 'login' | 'dashboard' | 'editor' | 'tracking' | 'preview'>('landing');
   const [activePid, setActivePid] = useState<string | null>(null);
   const [activeSid, setActiveSid] = useState<string | number | null>(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   
   // Modals state
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -369,35 +424,61 @@ function App() {
                  
                  let lastAddedId = null;
                  for (const file of files) {
-                   const path = `users/${user?.id}/slides/${Date.now()}_${file.name}`;
-                   console.log('Uploading slide to Supabase:', path);
-                   const { data, error } = await supabase.storage.from('assets').upload(path, file);
+                   const fileExtension = file.name.split('.').pop()?.toLowerCase();
+                   let blobsToUpload: Blob[] = [];
                    
-                   if (error) {
-                     console.error('Supabase Upload Error:', error);
-                     alert(`Failed to upload ${file.name}: ${error.message}`);
-                     continue;
+                   try {
+                     if (fileExtension === 'pdf') {
+                       blobsToUpload = await extractPdfPages(file);
+                     } else if (['jpg', 'jpeg', 'png', 'webp'].includes(fileExtension || '')) {
+                       blobsToUpload = [await compressImage(file)];
+                     } else {
+                       blobsToUpload = [file]; // Fallback
+                     }
+                   } catch (err) {
+                     console.error('Error processing file:', err);
+                     blobsToUpload = [file]; // Fallback to original if processing fails
                    }
 
-                   if (data) {
-                     const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
-                     console.log('Slide Public URL:', publicUrl);
+                   for (let i = 0; i < blobsToUpload.length; i++) {
+                     const blob = blobsToUpload[i];
+                     const newFileName = `${Date.now()}_${i}.webp`;
+                     const path = `users/${user?.id}/slides/${newFileName}`;
+                     console.log('Uploading slide to Supabase:', path);
                      
-                     const newId = String(Date.now() + Math.random());
-                     newSlides.splice(insertIndex, 0, {
-                       id: newId,
-                       title: file.name,
-                       content: '',
-                       imageUrl: publicUrl
-                     });
-                     insertIndex++;
-                     lastAddedId = newId;
+                     // Upload to Supabase as WebP
+                     const fileOptions = { cacheControl: '3600', upsert: false, contentType: 'image/webp' };
+                     const { data, error } = await supabase.storage.from('assets').upload(path, blob, fileOptions);
+                     
+                     if (error) {
+                       console.error('Supabase Upload Error:', error);
+                       alert(`Failed to upload slide ${i+1}: ${error.message}`);
+                       continue;
+                     }
+
+                     if (data) {
+                       const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
+                       console.log('Slide Public URL:', publicUrl);
+                       const newSlideId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                       lastAddedId = newSlideId;
+                       
+                       newSlides.splice(insertIndex, 0, {
+                         id: newSlideId,
+                         projectId: activeProject.id,
+                         imageUrl: publicUrl,
+                         title: `Slide ${newSlides.length + 1}`,
+                         order: insertIndex,
+                         content: '',
+                         showNarrative: false,
+                       });
+                       insertIndex++;
+                     }
                    }
                  }
+                 
                  await updateProject(activeProject.id, { slides: newSlides });
-                 if (lastAddedId) {
-                   setActiveSid(lastAddedId);
-                 }
+                 if (lastAddedId) setActiveSid(lastAddedId);
+                 if (e.target) e.target.value = '';
                }}
                user={user}
                isRecording={false}
