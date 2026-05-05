@@ -65,6 +65,8 @@ function App() {
     const roomFromUrl = params.get('room');
     if (roomFromUrl) {
       handleDirectJoin(roomFromUrl);
+    } else if (window.location.pathname === '/login') {
+      setView('login');
     }
   }, []);
 
