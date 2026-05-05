@@ -121,10 +121,6 @@ export const FloatingEditor: React.FC<FloatingEditorProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
-           <div className="flex bg-[#F4F4F1] border border-black rounded-sm overflow-hidden mr-1">
-             <button onClick={(e) => { e.stopPropagation(); onPrevSlide(); captureHistory(); }} disabled={!canPrev} className="px-2 py-1 hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-[#F4F4F1] disabled:hover:text-black transition-colors border-r border-black"><ChevronLeft size={14}/></button>
-             <button onClick={(e) => { e.stopPropagation(); onNextSlide(); captureHistory(); }} disabled={!canNext} className="px-2 py-1 hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-[#F4F4F1] disabled:hover:text-black transition-colors"><ChevronRight size={14}/></button>
-           </div>
            <button onClick={onClose} className="p-1 border border-transparent hover:border-black transition-colors"><X size={18} /></button>
         </div>
       </div>

@@ -59,6 +59,7 @@ function App() {
 
   // Audio Ref
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const draggedIdxRef = useRef<number | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -330,9 +331,32 @@ function App() {
                  const newSlides = activeProject.slides.filter(s => s.id !== sid);
                  updateProject(activeProject.id, { slides: newSlides });
                }}
-               onDragStart={() => {}}
-               onDragOver={() => {}}
-               onDrop={() => {}}
+               onDragStart={(idx) => { draggedIdxRef.current = idx; }}
+               onDragOver={(e) => { e.preventDefault(); }}
+               onDrop={(idx) => {
+                 if (draggedIdxRef.current === null) return;
+                 const draggedIdx = draggedIdxRef.current;
+                 if (draggedIdx === idx) return;
+                 
+                 const newSlides = [...activeProject.slides];
+                 
+                 // Prevent dragging fixed slides
+                 if (newSlides[draggedIdx].isFixed) return;
+                 
+                 // Limit drop index so it doesn't push past the fixed slides
+                 const firstFixedIdx = newSlides.findIndex(s => s.id === 'founder-note' || s.id === 'vc-feedback');
+                 let targetIdx = idx;
+                 if (firstFixedIdx !== -1 && targetIdx >= firstFixedIdx) {
+                   targetIdx = firstFixedIdx - 1;
+                   if (targetIdx < 0) targetIdx = 0;
+                 }
+
+                 const [draggedSlide] = newSlides.splice(draggedIdx, 1);
+                 newSlides.splice(targetIdx, 0, draggedSlide);
+                 
+                 updateProject(activeProject.id, { slides: newSlides });
+                 draggedIdxRef.current = null;
+               }}
                captureHistory={() => {}}
                handleUndo={() => {}}
                handleRedo={() => {}}

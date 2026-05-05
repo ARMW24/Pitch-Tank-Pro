@@ -81,12 +81,13 @@ export function useProjects(user: User | null) {
   };
 
   const updateProject = async (id: string, updates: any) => {
-    // Optimistic update
-    const projectToUpdate = projects.find(p => p.id === id);
-    if (projectToUpdate) {
-      const optimisticProject = { ...projectToUpdate, ...updates };
-      setProjects(projects.map(p => p.id === id ? optimisticProject : p));
-    }
+    // Optimistic update with functional state to prevent race conditions
+    setProjects(prev => prev.map(p => {
+      if (p.id === id) {
+        return { ...p, ...updates };
+      }
+      return p;
+    }));
 
     // Map camelCase to snake_case for Supabase
     const supabaseUpdates: any = {};
@@ -110,7 +111,8 @@ export function useProjects(user: User | null) {
     }
 
     const updatedProject = transformProject(data);
-    setProjects(prev => prev.map((p) => (p.id === id ? updatedProject : p)));
+    // Do NOT overwrite local state with server response to prevent typing cursor glitch!
+    // The optimistic update is enough since it's the exact same data.
     return updatedProject;
   };
 

@@ -93,10 +93,16 @@ export const EditorView: React.FC<EditorViewProps> = ({
     };
   }, []);
 
+  const activeSlideIdx = project.slides.findIndex((s: any) => s.id === activeSlide?.id);
+  const canPrev = activeSlideIdx > 0;
+  const canNext = activeSlideIdx >= 0 && activeSlideIdx < project.slides.length - 1;
+  const onPrevSlide = () => { if (canPrev) { setActiveSid(project.slides[activeSlideIdx - 1].id); captureHistory(); } };
+  const onNextSlide = () => { if (canNext) { setActiveSid(project.slides[activeSlideIdx + 1].id); captureHistory(); } };
+
   return (
-    <div className="flex-1 flex flex-row bg-[#F4F4F1] overflow-hidden text-black font-sans relative z-10 w-full h-full">
-      {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-1'} shrink-0 bg-white border-r border-black/5 transition-all duration-500 ease-in-out flex flex-col z-50 relative group/sidebar`}>
+    <div className="h-full flex relative overflow-hidden group/sidebar bg-[#F4F4F1]">
+      {/* Sidebar - Re-added magnet hover handling */}
+      <div className={`shrink-0 z-[100] h-full bg-[#F4F4F1] border-r-2 border-black relative transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
         {/* Magnet Handle */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -165,17 +171,11 @@ export const EditorView: React.FC<EditorViewProps> = ({
                onClose={() => setIsEditorOpen(false)} 
                onUpdate={updateActiveSlide} 
                userId={user?.id}
-               onPrevSlide={() => {
-                 const idx = slides.findIndex(s => s.id === activeSlide?.id);
-                 if (idx > 0) setActiveSid(slides[idx - 1].id);
-               }}
-               onNextSlide={() => {
-                 const idx = slides.findIndex(s => s.id === activeSlide?.id);
-                 if (idx >= 0 && idx < slides.length - 1) setActiveSid(slides[idx + 1].id);
-               }}
-               canPrev={(slides.findIndex(s => s.id === activeSlide?.id) ?? -1) > 0}
-               canNext={(slides.findIndex(s => s.id === activeSlide?.id) ?? -1) < (slides.length ?? 0) - 1}
                captureHistory={captureHistory}
+               onPrevSlide={onPrevSlide}
+               onNextSlide={onNextSlide}
+               canPrev={canPrev}
+               canNext={canNext}
             />
           )}
         </AnimatePresence>
@@ -215,9 +215,13 @@ export const EditorView: React.FC<EditorViewProps> = ({
                       <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
                         {fitToFrame ? 'ORIGINAL SIZE' : 'FIT TO FRAME'}
                       </button>
-                      <button onClick={() => setIsFrameless(!isFrameless)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
+                      <button onClick={() => setIsFrameless(!isFrameless)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors mr-4">
                         {isFrameless ? 'SHOW FRAME' : 'HIDE FRAME'}
                       </button>
+                    </div>
+                    <div className="flex items-center gap-1 border-l-2 border-black pl-4 h-full">
+                       <button onClick={onPrevSlide} disabled={!canPrev} className="p-1 hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-black transition-colors rounded-sm"><ChevronLeft size={16}/></button>
+                       <button onClick={onNextSlide} disabled={!canNext} className="p-1 hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-black transition-colors rounded-sm"><ChevronRight size={16}/></button>
                     </div>
                   </div>
                 </div>
@@ -273,6 +277,17 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 </div>
               </div>
 
+              {/* Dedicated Narrative Bar - Editable and Same Size as Preview Subtitles */}
+              {activeSlide.showNarrative && !activeSlide.isFixed && (
+                <div className="min-h-[96px] bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative overflow-hidden">
+                   <textarea 
+                      className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none custom-scrollbar-vertical py-4 placeholder:text-white/40"
+                      value={activeSlide.content || ''}
+                      onChange={(e) => updateActiveSlide('content', e.target.value)}
+                      placeholder="Type narrative subtitles here..."
+                   />
+                </div>
+              )}
            </div>
         </div>
 
