@@ -151,8 +151,9 @@ export const EditorView: React.FC<EditorViewProps> = ({
                   <LogOut size={18} className="shrink-0" />
                   {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">Logout</span>}
                </button>
-            </div>
-         </div>
+             </div>
+          </div>
+       </div>
       </div>
       
       <div className="flex-1 flex flex-col overflow-hidden relative">
