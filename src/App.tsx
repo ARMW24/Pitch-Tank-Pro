@@ -333,7 +333,7 @@ function App() {
   // Logged In Router
   return (
     <div className="h-screen bg-[#F4F4F1] flex flex-col overflow-hidden">
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 min-h-0">
          {view === 'dashboard' && (
            <DashboardView 
               user={user}

@@ -279,9 +279,10 @@ export const EditorView: React.FC<EditorViewProps> = ({
           )}
         </AnimatePresence>
 
-        <div className={`flex-1 flex flex-col items-center justify-center overflow-hidden relative z-10 w-full min-h-[0] ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
-           <div className={`aspect-[16/9] w-full h-auto max-w-full max-h-full ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
-              {!isFrameless && (
+        <div className="flex-1 relative z-10 w-full min-h-[0]">
+           <div className={`absolute inset-0 flex items-center justify-center overflow-hidden ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
+              <div className={`aspect-[16/9] w-full max-w-full max-h-full ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
+                 {!isFrameless && (
                 <div className="h-10 border-b-2 border-black bg-[#F4F4F1] flex items-center px-4 justify-between shrink-0">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
@@ -474,6 +475,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 )}
               </div>
            </div>
+        </div>
         </div>
 
         {/* Dedicated Narrative Bar - Editable and Pops Up Above Timeline */}
