@@ -228,7 +228,7 @@ function App() {
   };
   // Auth Redirect: If user is logged in and on a public view, go to dashboard
   useEffect(() => {
-    if (user && view === 'landing') {
+    if (user && (view === 'landing' || view === 'login')) {
       setView('dashboard');
     }
   }, [user, view]);
@@ -243,8 +243,41 @@ function App() {
     );
   }
 
+  // Auth UI (Login Page)
+  if (!user && view === 'login') {
+      return (
+        <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center justify-center relative overflow-hidden p-6">
+          <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
+          
+          <div className="w-full max-w-md bg-white border-2 border-black p-10 shadow-[16px_16px_0_0_#000] space-y-10 relative z-10">
+             <button onClick={() => setView('landing')} className="absolute -top-4 -left-4 bg-black text-white px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-widest hover:translate-x-1 hover:translate-y-1 transition-transform flex items-center gap-2">
+                <ArrowRight size={14} className="rotate-180" /> Back
+             </button>
+             
+             <div className="text-center space-y-4">
+                <div className="inline-block bg-black text-white px-3 py-1 font-mono text-[9px] uppercase tracking-widest">Founder Access</div>
+                <h1 className="text-4xl font-serif font-black italic uppercase tracking-tighter">Login to <br/> Pitch Tank</h1>
+                <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Securely manage your pitch rooms</p>
+             </div>
+
+             <button 
+                onClick={() => signInWithGoogle()}
+                className="w-full bg-white border-2 border-black py-5 px-6 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+             >
+                <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
+                <span className="font-mono font-black text-sm uppercase tracking-widest">Sign in with Google</span>
+             </button>
+
+             <p className="text-[9px] font-mono font-bold text-gray-400 uppercase tracking-[0.2em] leading-relaxed text-center">
+                Access is restricted to authorized founders only.
+             </p>
+          </div>
+        </div>
+      );
+  }
+
   // Auth UI (Landing Page) - ONLY show if not logged in
-  if (!user) {
+  if (!user && view !== 'preview') {
     return (
       <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center relative overflow-hidden p-6 md:p-12">
         <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
@@ -262,11 +295,10 @@ function App() {
 
              <div className="pt-8 flex flex-col items-center lg:items-start gap-4">
                 <button 
-                   onClick={() => signInWithGoogle()}
-                   className="bg-white border-2 border-black py-5 px-8 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[12px_12px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+                   onClick={() => setView('login')}
+                   className="font-mono font-black text-xs uppercase tracking-[0.3em] border-b-4 border-black hover:bg-black hover:text-white px-4 py-2 transition-all"
                 >
-                   <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
-                   <span className="font-mono font-black text-sm uppercase tracking-widest">Sign in with Google</span>
+                   Founder Login →
                 </button>
                 <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Founders Only • Private Room Management</p>
              </div>
