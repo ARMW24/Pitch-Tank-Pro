@@ -170,8 +170,21 @@ export const EditorView: React.FC<EditorViewProps> = ({
     }
   };
 
+  const handleMarkerDragEnd = (e: any, info: any, markerKey: string) => {
+     const el = e.target as HTMLElement;
+     const parent = el.closest('.relative.z-10') as HTMLElement;
+     if (parent) {
+         const rect = parent.getBoundingClientRect();
+         const newX = ((info.point.x - rect.left) / rect.width) * 100;
+         const newY = ((info.point.y - rect.top) / rect.height) * 100;
+         const clampedX = Math.max(0, Math.min(100, newX));
+         const clampedY = Math.max(0, Math.min(100, newY));
+         updateActiveSlide(markerKey, { ...activeSlide[markerKey], x: clampedX, y: clampedY });
+     }
+  };
+
   return (
-    <div className="h-full flex relative overflow-hidden group/sidebar bg-[#F4F4F1]">
+    <div className="h-full w-full flex-1 flex relative overflow-hidden group/sidebar bg-[#F4F4F1]">
       <div className={`shrink-0 z-[100] h-full bg-[#F4F4F1] border-r-2 border-black relative transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -340,31 +353,31 @@ export const EditorView: React.FC<EditorViewProps> = ({
                           return (
                             <React.Fragment key={num}>
                                {ytMarker && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
-                                    <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                       <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
-                                    </div>
+                                    </motion.div>
                                   </div>
                                )}
                                {galMarker && galMarker.images && galMarker.images.length > 0 && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
-                                    <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, width: 0, height: 0 }}>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                       <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
-                                    </div>
+                                    </motion.div>
                                   </div>
                                )}
                                {noteMarker && noteMarker.text && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
-                                    <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, width: 0, height: 0 }}>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                       <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
-                                    </div>
+                                    </motion.div>
                                   </div>
                                )}
                                {docMarker && docMarker.url && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
-                                    <div className="bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, width: 0, height: 0 }}>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                       <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
-                                    </div>
+                                    </motion.div>
                                   </div>
                                )}
                             </React.Fragment>

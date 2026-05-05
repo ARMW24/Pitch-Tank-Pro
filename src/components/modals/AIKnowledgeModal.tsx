@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Cpu, X, FileText, Trash2, ShieldCheck } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
@@ -15,6 +15,12 @@ export const AIKnowledgeModal: React.FC<AIKnowledgeModalProps> = ({ isOpen, proj
   const [isAddingText, setIsAddingText] = useState(false);
   const [customText, setCustomText] = useState('');
   const [textTitle, setTextTitle] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setFiles(project?.aiKnowledgeFiles || []);
+    }
+  }, [isOpen, project]);
 
   if (!isOpen) return null;
 

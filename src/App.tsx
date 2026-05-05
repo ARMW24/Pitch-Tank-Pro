@@ -493,7 +493,10 @@ function App() {
                   }
                   if (data) {
                     const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
-                    updateActiveSlide('audioUrl', publicUrl);
+                    const newSlides = activeProject.slides.map(s => 
+                       s.id === activeSid ? { ...s, audioUrl: publicUrl } : s
+                    );
+                    updateProject(activeProject.id, { slides: newSlides });
                   }
                   if (e.target) e.target.value = '';
                 }}
