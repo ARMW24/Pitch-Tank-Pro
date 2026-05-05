@@ -646,7 +646,7 @@ const PreviewRoom = ({ project, onBack, onUpdateSlide, initialSid, visitorSessio
 
   const handlePrev = () => {
     if (slideIndex > 0) {
-      setActiveSid(project.slides[slideIndex - 1].id);
+      setActiveSid(slides[slideIndex - 1].id);
     }
   };
 
@@ -1055,6 +1055,7 @@ export default function App() {
   const [loadingShared, setLoadingShared] = useState(hasRoomParam);
   const [gatedError, setGatedError] = useState("");
   const [homeError, setHomeError] = useState("");
+  const [isCloning, setIsCloning] = useState(false);
 
   const lastSavedProjectsRef = useRef(projects);
 
@@ -1069,6 +1070,74 @@ export default function App() {
       linkElement.click();
     } catch (err) {
       console.error("Export error:", err);
+    }
+  };
+
+  const handleImportProject = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target?.result as string);
+        if (!importedData.name || !Array.isArray(importedData.slides)) {
+           throw new Error("Invalid project format");
+        }
+        
+        const newId = 'i' + Date.now();
+        const pin = generateSecurePin();
+        const newProject = {
+           ...importedData,
+           id: newId,
+           pinCode: pin,
+           userId: user?.uid,
+           createdAt: serverTimestamp(),
+           updatedAt: serverTimestamp(),
+           isImported: true
+        };
+        
+        setProjects(prev => [newProject, ...prev]);
+        setHomeError("Room imported successfully!");
+        setTimeout(() => setHomeError(""), 3000);
+      } catch (err) {
+        setHomeError("Failed to import. Invalid JSON format.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const cloneSharedToDashboard = async () => {
+    if (!user || !sharedProjectData) return;
+    setIsCloning(true);
+    try {
+      const { id: _, ...data } = sharedProjectData;
+      const newId = 'c' + Date.now();
+      const pin = generateSecurePin();
+      const payload = {
+        ...data,
+        userId: user.uid,
+        pinCode: pin,
+        clonedFrom: sharedProjectData.id,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(db, 'projects', newId), payload).then(() => {
+          setProjects(prev => [{ id: newId, ...payload }, ...prev]);
+          alert("Project cloned to your dashboard successfully!");
+          setView('dashboard');
+          setActivePid(null);
+          setIsCloning(false);
+          // Redirect to home without params
+          window.location.search = "";
+        });
+      });
+    } catch (err) {
+      console.error("Clone error:", err);
+      setIsCloning(false);
     }
   };
 
@@ -1119,10 +1188,12 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const roomId = params.get('room');
     if (roomId && authInitialized) {
+      console.log("Fetching shared room:", roomId);
       setLoadingShared(true);
       import('firebase/firestore').then(({ getDoc, doc }) => {
         getDoc(doc(db, 'projects', roomId)).then(snap => {
           if (snap.exists()) {
+            console.log("Room found, owner check...");
             const data = snap.data() as any;
             const isOwner = user && data.userId === user.uid;
             
@@ -1299,11 +1370,20 @@ export default function App() {
                  </button>
               </form>
               
-              <div className="mt-10 text-center">
-                 <button onClick={() => window.location.href = '/'} className="text-[9px] font-mono text-gray-400 hover:text-black uppercase tracking-widest underline decoration-2 underline-offset-4">
-                    Leave This Room
-                 </button>
-              </div>
+              <div className="mt-10 text-center space-y-4">
+                  {user && (
+                    <button 
+                      onClick={cloneSharedToDashboard}
+                      disabled={isCloning}
+                      className="w-full bg-white text-black border-2 border-black p-3 font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 flex items-center justify-center gap-2"
+                    >
+                      {isCloning ? "Cloning..." : <>Copy to My Dashboard <Plus size={14} /></>}
+                    </button>
+                  )}
+                  <button onClick={() => window.location.href = '/'} className="text-[9px] font-mono text-gray-400 hover:text-black uppercase tracking-widest underline decoration-2 underline-offset-4">
+                     Leave This Room
+                  </button>
+               </div>
            </div>
         </div>
      );
@@ -1507,11 +1587,11 @@ export default function App() {
   const slides = activeProject?.slides || [];
   const activeSlide = slides.find((s: any) => String(s.id) === String(activeSid || slides[0]?.id)) || slides[0] || { title: 'Untitled', content: '', id: 'empty' };
 
-  if (loadingShared && !sharedProjectData && !activeProject) {
+  if (loadingShared) {
      return (
         <div className="flex-1 flex flex-col items-center justify-center bg-[#F4F4F1] min-h-screen">
           <div className="w-12 h-12 border-4 border-black border-t-transparent animate-spin rounded-full mb-4"></div>
-          <p className="font-mono text-xs uppercase tracking-widest font-black">Loading Pitch Data...</p>
+          <p className="font-mono text-xs uppercase tracking-widest font-black">Syncing Room Data...</p>
         </div>
      );
   }
@@ -1739,9 +1819,20 @@ export default function App() {
     <div className="flex-1 bg-[#F4F4F1] p-6 lg:p-12 overflow-y-auto md:border-l-2 border-black relative">
       <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
       <div className="max-w-7xl mx-auto relative z-10">
-        <header className="mb-8 lg:mb-16 flex flex-col gap-2 border-b-2 border-black pb-8">
-          <p className="text-[10px] font-mono tracking-widest uppercase mb-1">Project Stream / Rooms</p>
-          <h1 className="text-5xl lg:text-7xl font-sans font-black tracking-tighter leading-none">INVESTMENT<br/>ROOMS</h1>
+        <header className="mb-8 lg:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-2 border-black pb-8">
+          <div>
+            <p className="text-[10px] font-mono tracking-widest uppercase mb-1">Project Stream / Rooms</p>
+            <h1 className="text-5xl lg:text-7xl font-sans font-black tracking-tighter leading-none">INVESTMENT<br/>ROOMS</h1>
+          </div>
+          <div className="flex gap-2">
+             <label className="cursor-pointer px-4 py-2 bg-white border-2 border-black text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center gap-2">
+                <Upload size={14} /> Import Room
+                <input type="file" accept=".json" className="hidden" onChange={handleImportProject} />
+             </label>
+             <button onClick={() => setModal({ type: 'new' })} className="px-4 py-2 bg-black text-white border-2 border-black text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-[4px_4px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center gap-2">
+                <Plus size={14} /> New Room
+             </button>
+          </div>
         </header>
 
         <div className="bg-white border-2 border-black p-6 md:p-8 shadow-[8px_8px_0_0_#000] mb-8 lg:mb-12">
@@ -1820,8 +1911,15 @@ export default function App() {
                   <button onClick={(e) => {
                     e.stopPropagation();
                     exportProjectData(project);
-                  }} title="Export Pitch Data" className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors">
-                    <Download size={16} />
+                  }} title="Export Pitch Data" className="flex items-center gap-2 p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors group/export">
+                    <Download size={14} className="group-hover/export:animate-bounce" />
+                    <span className="font-mono text-[9px] font-black uppercase tracking-widest">Export</span>
+                  </button>
+                  <button onClick={(e) => {
+                    e.stopPropagation();
+                    setModal({ type: 'share', data: project });
+                  }} title="Share Room" className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors">
+                    <Share2 size={16} />
                   </button>
                   <button onClick={(e) => {
                     e.stopPropagation();
