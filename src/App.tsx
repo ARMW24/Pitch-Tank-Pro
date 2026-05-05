@@ -92,7 +92,7 @@ function App() {
     getProject
   } = useProjects(user);
 
-  const [view, setView] = useState<'landing' | 'login' | 'dashboard' | 'editor' | 'tracking' | 'preview'>('landing');
+  const [view, setView] = useState<'landing' | 'dashboard' | 'editor' | 'tracking' | 'preview'>('landing');
   const [activePid, setActivePid] = useState<string | null>(null);
   const [activeSid, setActiveSid] = useState<string | number | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -121,8 +121,6 @@ function App() {
     const roomFromUrl = params.get('room');
     if (roomFromUrl) {
       handleDirectJoin(roomFromUrl);
-    } else if (window.location.pathname === '/login') {
-      setView('login');
     }
   }, []);
 
@@ -197,7 +195,7 @@ function App() {
   };
   // Auth Redirect: If user is logged in and on a public view, go to dashboard
   useEffect(() => {
-    if (user && (view === 'landing' || view === 'login')) {
+    if (user && view === 'landing') {
       setView('dashboard');
     }
   }, [user, view]);
@@ -212,40 +210,8 @@ function App() {
     );
   }
 
-  // Auth UI (Landing Page / Login Page) - ONLY show if not logged in
+  // Auth UI (Landing Page) - ONLY show if not logged in
   if (!user) {
-    if (view === 'login') {
-      return (
-        <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center justify-center relative overflow-hidden p-6">
-          <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
-          
-          <div className="w-full max-w-md bg-white border-2 border-black p-10 shadow-[16px_16px_0_0_#000] space-y-10 relative z-10">
-             <button onClick={() => setView('landing')} className="absolute -top-4 -left-4 bg-black text-white px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-widest hover:translate-x-1 hover:translate-y-1 transition-transform flex items-center gap-2">
-                <ArrowRight size={14} className="rotate-180" /> Back
-             </button>
-             
-             <div className="text-center space-y-4">
-                <div className="inline-block bg-black text-white px-3 py-1 font-mono text-[9px] uppercase tracking-widest">Founder Access</div>
-                <h1 className="text-4xl font-serif font-black italic uppercase tracking-tighter">Login to <br/> Pitch Tank</h1>
-                <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Securely manage your pitch rooms</p>
-             </div>
-
-             <button 
-                onClick={() => signInWithGoogle()}
-                className="w-full bg-white border-2 border-black py-5 px-6 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
-             >
-                <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
-                <span className="font-mono font-black text-sm uppercase tracking-widest">Sign in with Google</span>
-             </button>
-
-             <p className="text-[9px] font-mono font-bold text-gray-400 uppercase tracking-[0.2em] leading-relaxed text-center">
-                Data is isolated by Supabase Account. Your pitch rooms are securely stored and private.
-             </p>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center relative overflow-hidden p-6 md:p-12">
         <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
@@ -253,7 +219,7 @@ function App() {
         <div className="max-w-6xl w-full flex flex-col lg:flex-row items-center justify-between gap-16 relative z-10 mt-12 lg:mt-24">
           {/* Hero Section */}
           <div className="flex-1 space-y-10 text-center lg:text-left">
-             <div className="inline-block bg-black text-white px-4 py-1 font-mono text-[10px] uppercase tracking-widest font-bold">BETA V2.4</div>
+             <div className="inline-block bg-black text-white px-4 py-1 font-mono text-[10px] uppercase tracking-widest font-bold">FOUNDER ACCESS</div>
              <h1 className="text-6xl md:text-8xl font-serif font-black italic uppercase leading-[0.85] tracking-tighter text-black">
                 Pitch <br/> <span className="text-outline">Tank</span>
              </h1>
@@ -261,13 +227,15 @@ function App() {
                 The world's first <span className="font-bold underline decoration-4">Interactive Pitch</span>
              </p>
 
-             <div className="pt-8">
+             <div className="pt-8 flex flex-col items-center lg:items-start gap-4">
                 <button 
-                   onClick={() => setView('login')}
-                   className="font-mono font-black text-xs uppercase tracking-[0.3em] border-b-4 border-black hover:bg-black hover:text-white px-4 py-2 transition-all"
+                   onClick={() => signInWithGoogle()}
+                   className="bg-white border-2 border-black py-5 px-8 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[12px_12px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
                 >
-                   Founder Login →
+                   <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
+                   <span className="font-mono font-black text-sm uppercase tracking-widest">Sign in with Google</span>
                 </button>
+                <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Founders Only • Private Room Management</p>
              </div>
           </div>
 
