@@ -62,7 +62,7 @@ const extractPdfPages = async (file: File): Promise<Blob[]> => {
     const canvas = document.createElement('canvas');
     canvas.width = viewport.width; canvas.height = viewport.height;
     const ctx = canvas.getContext('2d');
-    await page.render({ canvasContext: ctx!, viewport }).promise;
+    await page.render({ canvasContext: ctx!, viewport } as any).promise;
     
     // Convert to webp directly from canvas
     const blob = await new Promise<Blob>((resolve, reject) => {
@@ -187,7 +187,7 @@ function App() {
           name: visitorName || 'Anonymous VC',
           email: visitorEmail || 'no-email@vc.com',
           started_at: new Date().toISOString()
-        }).then(() => console.log('Session recorded')).catch(console.error);
+        }).then(() => console.log('Session recorded'), console.error);
         
         setVisitorSessionId(sessId);
         setProjectToEdit(project);
