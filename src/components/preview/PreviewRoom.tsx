@@ -369,8 +369,8 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
               </AnimatePresence>
               
               {showSubtitles && currentSlide.content && currentSlide.id !== 'founder-note' && currentSlide.id !== 'vc-feedback' && (
-                <div className="min-h-[96px] bg-black border-t-2 border-black flex flex-col items-center justify-center px-6 md:px-12 shrink-0 relative overflow-hidden">
-                   <p className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center py-4">{currentSlide.content}</p>
+                <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-6 md:px-12 shrink-0 relative py-4">
+                   <p className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center min-h-[64px] flex items-center justify-center">{currentSlide.content}</p>
                 </div>
               )}
             </div>

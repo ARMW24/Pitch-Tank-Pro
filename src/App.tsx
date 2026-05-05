@@ -22,8 +22,8 @@ import { ConfirmationModal } from './components/modals/ConfirmationModal';
 import { AIKnowledgeModal } from './components/modals/AIKnowledgeModal';
 
 import * as pdfjsLib from 'pdfjs-dist';
-// Initialize PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Initialize PDF.js worker using unpkg which reliably serves the correct module format
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 const compressImage = async (file: Blob | File): Promise<Blob> => {
   return new Promise((resolve, reject) => {

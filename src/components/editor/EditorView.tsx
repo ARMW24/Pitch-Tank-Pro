@@ -193,9 +193,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
                   <div className="flex items-center">
                      {activeSlide.audioUrl && (
                         <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
-                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                           <span className="font-mono text-[9px] font-black uppercase tracking-widest text-green-600">Audio Linked</span>
-                           <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:scale-110"><X size={12}/></button>
+                           <audio controls src={activeSlide.audioUrl} className="h-8 w-48" />
+                           <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:scale-110 ml-2"><X size={12}/></button>
                         </div>
                      )}
                      <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
@@ -265,6 +264,11 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 
                 {/* Floating Actions */}
                 <div className="absolute top-6 right-6 flex flex-col gap-3 z-40">
+                    {isFrameless && (
+                       <button onClick={() => setIsFrameless(false)} className="bg-white border-2 border-black px-4 py-2 font-mono text-[10px] uppercase font-black hover:bg-black hover:text-white transition-colors shadow-[4px_4px_0_0_#000]">
+                         Show Frame
+                       </button>
+                    )}
                     <div className="bg-white border-2 border-black flex items-center p-1 shadow-[4px_4px_0_0_#000]">
                        <button onClick={handleUndo} className="p-2 hover:bg-black hover:text-white transition-colors border-r-2 border-black"><Undo2 size={16}/></button>
                        <button onClick={handleRedo} className="p-2 hover:bg-black hover:text-white transition-colors"><Redo2 size={16}/></button>
@@ -279,12 +283,21 @@ export const EditorView: React.FC<EditorViewProps> = ({
 
               {/* Dedicated Narrative Bar - Editable and Same Size as Preview Subtitles */}
               {activeSlide.showNarrative && !activeSlide.isFixed && (
-                <div className="min-h-[96px] bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative overflow-hidden">
+                <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative py-4">
                    <textarea 
-                      className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none custom-scrollbar-vertical py-4 placeholder:text-white/40"
+                      className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40"
                       value={activeSlide.content || ''}
-                      onChange={(e) => updateActiveSlide('content', e.target.value)}
+                      onChange={(e) => {
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                        updateActiveSlide('content', e.target.value);
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                      }}
                       placeholder="Type narrative subtitles here..."
+                      style={{ minHeight: '64px' }}
                    />
                 </div>
               )}
@@ -293,8 +306,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
 
         {/* Timeline Area */}
         <div 
-          style={{ height: timelineHeight }}
-          className="bg-white border-t-2 border-black shrink-0 relative flex flex-col z-[60]"
+          style={{ height: timelineHeight, minHeight: timelineHeight, flexShrink: 0 }}
+          className="bg-white border-t-2 border-black relative flex flex-col z-[60] w-full"
         >
            <div 
              onMouseDown={() => { isResizing.current = true; }}
