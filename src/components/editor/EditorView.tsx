@@ -69,7 +69,63 @@ export const EditorView: React.FC<EditorViewProps> = ({
   const [activeGallery, setActiveGallery] = useState<{ images: string[], index: number } | null>(null);
   const [activeNote, setActiveNote] = useState<{ text: string, title: string } | null>(null);
   const [activeDoc, setActiveDoc] = useState<{ url: string, name: string } | null>(null);
+  const [globalShowNarrative, setGlobalShowNarrative] = useState(true);
+  const [isRecordingState, setIsRecordingState] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const isResizing = useRef(false);
+  const narrativeRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResizeNarrative = () => {
+    if (narrativeRef.current) {
+      narrativeRef.current.style.height = 'auto';
+      narrativeRef.current.style.height = narrativeRef.current.scrollHeight + 'px';
+    }
+  };
+
+  useEffect(() => {
+    autoResizeNarrative();
+    window.addEventListener('resize', autoResizeNarrative);
+    return () => window.removeEventListener('resize', autoResizeNarrative);
+  }, [activeSid, globalShowNarrative, fitToFrame]);
+
+  const toggleRecording = async () => {
+    if (isRecordingState) {
+      mediaRecorderRef.current?.stop();
+      setIsRecordingState(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunksRef.current.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const tempUrl = URL.createObjectURL(audioBlob);
+          updateActiveSlide('audioUrl', tempUrl);
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        setIsRecordingState(true);
+      } catch (err) {
+        console.error("Microphone access error", err);
+        alert("Cannot access microphone.");
+      }
+    }
+  };
+
+  const localHandleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const tempUrl = URL.createObjectURL(file);
+    updateActiveSlide('audioUrl', tempUrl);
+  };
 
   const slides = project.slides || [];
   const activeSlide = slides.find((s: any) => s.id === (activeSid || slides[0]?.id)) || slides[0] || { title: 'Untitled', content: '', id: 'empty' };
@@ -137,14 +193,14 @@ export const EditorView: React.FC<EditorViewProps> = ({
               <Share2 size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
               {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">Share Pitch Room</span>}
             </button>
-            <button onClick={() => updateActiveSlide('showNarrative', !activeSlide?.showNarrative)} className="flex items-center justify-between px-5 py-3 hover:bg-gray-100 transition-colors w-full group overflow-hidden">
+            <button onClick={() => setGlobalShowNarrative(!globalShowNarrative)} className="flex items-center justify-between px-5 py-3 hover:bg-gray-100 transition-colors w-full group overflow-hidden">
               <div className="flex items-center gap-4">
                 <FileText size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
                 {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">Narrative Log</span>}
               </div>
               {isSidebarOpen && (
-                <div className={`w-8 h-4 border-2 border-black flex items-center p-0.5 transition-colors shrink-0 ${activeSlide?.showNarrative ? 'bg-black' : 'bg-white'}`}>
-                  <div className={`w-2 h-2 bg-white border border-black transition-transform ${activeSlide?.showNarrative ? 'translate-x-[12px] border-white bg-white' : 'translate-x-0 bg-black'}`}></div>
+                <div className={`w-8 h-4 border-2 border-black flex items-center p-0.5 transition-colors shrink-0 ${globalShowNarrative ? 'bg-black' : 'bg-white'}`}>
+                  <div className={`w-2 h-2 bg-white border border-black transition-transform ${globalShowNarrative ? 'translate-x-[12px] border-white bg-white' : 'translate-x-0 bg-black'}`}></div>
                 </div>
               )}
             </button>
@@ -181,7 +237,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
         </AnimatePresence>
 
         {/* Main Preview Area */}
-        <div className={`flex-1 flex flex-col overflow-hidden relative z-10 w-full h-full min-h-[0] ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
+        <div className={`flex-1 flex flex-col overflow-hidden relative z-10 w-full min-h-[0] ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
            <div className={`w-full flex-1 min-h-[0] ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
               {!isFrameless && (
                 <div className="h-10 border-b-2 border-black bg-[#F4F4F1] flex items-center px-4 justify-between shrink-0">
@@ -193,22 +249,21 @@ export const EditorView: React.FC<EditorViewProps> = ({
                   <div className="flex items-center">
                      {activeSlide.audioUrl && (
                         <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
-                           <audio controls src={activeSlide.audioUrl} className="h-8 w-48" />
+                           <audio controls src={activeSlide.audioUrl} className="max-w-[200px]" />
                            <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:scale-110 ml-2"><X size={12}/></button>
                         </div>
                      )}
                      <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
                         <button 
-                          onMouseDown={handleStartRecording} 
-                          onMouseUp={handleStopRecording}
-                          className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+                          onClick={toggleRecording}
+                          className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecordingState ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
                         >
-                          <Mic size={14} /> {isRecording ? 'REC...' : 'REC'}
+                          <Mic size={14} /> {isRecordingState ? 'REC...' : 'REC'}
                         </button>
                         <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all">
                            <Upload size={14} />
                         </button>
-                        <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
+                        <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={localHandleAudioUpload} />
                      </div>
                     <div className="flex items-center gap-4">
                       <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
@@ -282,19 +337,15 @@ export const EditorView: React.FC<EditorViewProps> = ({
               </div>
 
               {/* Dedicated Narrative Bar - Editable and Same Size as Preview Subtitles */}
-              {activeSlide.showNarrative && !activeSlide.isFixed && (
+              {globalShowNarrative && !activeSlide.isFixed && (
                 <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative py-4">
                    <textarea 
+                      ref={narrativeRef}
                       className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40"
                       value={activeSlide.content || ''}
                       onChange={(e) => {
-                        e.target.style.height = 'auto';
-                        e.target.style.height = e.target.scrollHeight + 'px';
+                        autoResizeNarrative();
                         updateActiveSlide('content', e.target.value);
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.height = 'auto';
-                        e.target.style.height = e.target.scrollHeight + 'px';
                       }}
                       placeholder="Type narrative subtitles here..."
                       style={{ minHeight: '64px' }}
