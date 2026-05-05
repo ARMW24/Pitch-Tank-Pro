@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, LayoutDashboard, Settings2, Eye, 
   Share2, FileText, Cpu, Trash2, ImageIcon, Play, Plus, 
-  Maximize, Undo2, Redo2, Layers, Youtube, Send, X, Upload
+  Maximize, Undo2, Redo2, Layers, Youtube, Send, X, Upload,
+  Mic, ShieldCheck
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { FloatingEditor } from './FloatingEditor';

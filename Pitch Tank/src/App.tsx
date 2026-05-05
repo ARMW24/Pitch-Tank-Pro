@@ -238,10 +238,8 @@ function App() {
        {(view === 'dashboard' || view === 'editor' || view === 'tracking') && (
         <aside 
           className={`bg-black flex flex-col items-center py-10 border-r-2 border-black gap-10 z-50 transition-all duration-300 ${isSidebarExpanded ? 'w-64' : 'w-24'}`}
-          onMouseEnter={() => setIsSidebarExpanded(true)}
-          onMouseLeave={() => setIsSidebarExpanded(false)}
         >
-          <div className="flex items-center w-full px-6 gap-4 cursor-pointer" onClick={() => setView('dashboard')}>
+          <div className="flex items-center w-full px-6 gap-4 cursor-pointer" onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}>
             <div className="w-12 h-12 bg-white text-black flex items-center justify-center font-serif font-black text-xl italic flex-shrink-0">PT</div>
             {isSidebarExpanded && <span className="text-white font-serif font-black italic text-xl uppercase tracking-tighter">Pitch Tank</span>}
           </div>
