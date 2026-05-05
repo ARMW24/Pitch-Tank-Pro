@@ -255,7 +255,14 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     </div>
 
                     {currentSlide.imageUrl ? (
-                      <img src={currentSlide.imageUrl} className="w-full h-full object-contain relative z-10" alt={currentSlide.title} />
+                      <div className="w-full h-full relative z-10" onContextMenu={(e) => e.preventDefault()}>
+                        <img 
+                          src={currentSlide.imageUrl} 
+                          className="w-full h-full object-contain pointer-events-none select-none" 
+                          alt={currentSlide.title} 
+                          onDragStart={(e) => e.preventDefault()}
+                        />
+                      </div>
                     ) : (
                       <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>
                         <h1 className="text-[6vw] font-serif font-black uppercase mb-6 tracking-tighter italic leading-none">{currentSlide.title}</h1>
