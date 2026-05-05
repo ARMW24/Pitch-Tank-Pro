@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Copy, Trash2, LayoutDashboard, Target, LogOut, Search, Shield, Zap,
   Mic, ShieldCheck, ChevronUp, ChevronDown, 
-  ChevronLeft, ChevronRight, Upload, Play, MoreVertical,
+  ChevronLeft, ChevronRight, Upload, Play, Pause, RotateCcw, MoreVertical,
   Settings2, Eye, Share2, FileText, Cpu, ImageIcon, Maximize, Undo2, Redo2, Layers, Youtube, Send, X
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
@@ -27,11 +27,6 @@ interface EditorViewProps {
   handleUndo: () => void;
   handleRedo: () => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  user: any;
-  isRecording: boolean;
-  handleStartRecording: () => void;
-  handleStopRecording: () => void;
-  handleAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   audioInputRef: React.RefObject<HTMLInputElement>;
   onLogout: () => void;
 }
@@ -54,9 +49,6 @@ export const EditorView: React.FC<EditorViewProps> = ({
   handleRedo,
   handleFileUpload,
   user,
-  isRecording,
-  handleStartRecording,
-  handleStopRecording,
   handleAudioUpload,
   audioInputRef,
   onLogout
@@ -67,65 +59,15 @@ export const EditorView: React.FC<EditorViewProps> = ({
   const [fitToFrame, setFitToFrame] = useState(true);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [activeGallery, setActiveGallery] = useState<{ images: string[], index: number } | null>(null);
-  const [activeNote, setActiveNote] = useState<{ text: string, title: string } | null>(null);
   const [activeDoc, setActiveDoc] = useState<{ url: string, name: string } | null>(null);
-  const [globalShowNarrative, setGlobalShowNarrative] = useState(true);
-  const [isRecordingState, setIsRecordingState] = useState(false);
+  const [showNarrative, setShowNarrative] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const narrativeRef = useRef<HTMLTextAreaElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const isResizing = useRef(false);
-  const narrativeRef = useRef<HTMLTextAreaElement>(null);
-
-  const autoResizeNarrative = () => {
-    if (narrativeRef.current) {
-      narrativeRef.current.style.height = 'auto';
-      narrativeRef.current.style.height = narrativeRef.current.scrollHeight + 'px';
-    }
-  };
-
-  useEffect(() => {
-    autoResizeNarrative();
-    window.addEventListener('resize', autoResizeNarrative);
-    return () => window.removeEventListener('resize', autoResizeNarrative);
-  }, [activeSid, globalShowNarrative, fitToFrame]);
-
-  const toggleRecording = async () => {
-    if (isRecordingState) {
-      mediaRecorderRef.current?.stop();
-      setIsRecordingState(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
-
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) audioChunksRef.current.push(event.data);
-        };
-
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          const tempUrl = URL.createObjectURL(audioBlob);
-          updateActiveSlide('audioUrl', tempUrl);
-          stream.getTracks().forEach(track => track.stop());
-        };
-
-        mediaRecorder.start();
-        setIsRecordingState(true);
-      } catch (err) {
-        console.error("Microphone access error", err);
-        alert("Cannot access microphone.");
-      }
-    }
-  };
-
-  const localHandleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const tempUrl = URL.createObjectURL(file);
-    updateActiveSlide('audioUrl', tempUrl);
-  };
 
   const slides = project.slides || [];
   const activeSlide = slides.find((s: any) => s.id === (activeSid || slides[0]?.id)) || slides[0] || { title: 'Untitled', content: '', id: 'empty' };
@@ -149,11 +91,80 @@ export const EditorView: React.FC<EditorViewProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (narrativeRef.current) {
+      narrativeRef.current.style.height = 'auto';
+      narrativeRef.current.style.height = narrativeRef.current.scrollHeight + 'px';
+    }
+  }, [activeSlide.content, showNarrative, isFrameless]);
+
   const activeSlideIdx = project.slides.findIndex((s: any) => s.id === activeSlide?.id);
   const canPrev = activeSlideIdx > 0;
   const canNext = activeSlideIdx >= 0 && activeSlideIdx < project.slides.length - 1;
   const onPrevSlide = () => { if (canPrev) { setActiveSid(project.slides[activeSlideIdx - 1].id); captureHistory(); } };
   const onNextSlide = () => { if (canNext) { setActiveSid(project.slides[activeSlideIdx + 1].id); captureHistory(); } };
+
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (audioRef.current.paused) {
+        audioRef.current.play().catch(console.error);
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  };
+
+  const restartAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(console.error);
+    }
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const tempUrl = URL.createObjectURL(audioBlob);
+        updateActiveSlide('audioUrl', tempUrl);
+        
+        if (user) {
+          const file = new File([audioBlob], `recording_${Date.now()}.webm`, { type: 'audio/webm' });
+          const path = `users/${user.id}/audio/${file.name}`;
+          const { data, error } = await supabase.storage.from('assets').upload(path, file);
+          if (!error && data) {
+            const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
+            updateActiveSlide('audioUrl', publicUrl);
+          }
+        }
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Microphone access denied:", err);
+      alert("Microphone access is required to record audio.");
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
 
   return (
     <div className="h-full flex relative overflow-hidden group/sidebar bg-[#F4F4F1]">
@@ -193,14 +204,14 @@ export const EditorView: React.FC<EditorViewProps> = ({
               <Share2 size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
               {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">Share Pitch Room</span>}
             </button>
-            <button onClick={() => setGlobalShowNarrative(!globalShowNarrative)} className="flex items-center justify-between px-5 py-3 hover:bg-gray-100 transition-colors w-full group overflow-hidden">
+            <button onClick={() => setShowNarrative(!showNarrative)} className="flex items-center justify-between px-5 py-3 hover:bg-gray-100 transition-colors w-full group overflow-hidden">
               <div className="flex items-center gap-4">
                 <FileText size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
                 {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">Narrative Log</span>}
               </div>
               {isSidebarOpen && (
-                <div className={`w-8 h-4 border-2 border-black flex items-center p-0.5 transition-colors shrink-0 ${globalShowNarrative ? 'bg-black' : 'bg-white'}`}>
-                  <div className={`w-2 h-2 bg-white border border-black transition-transform ${globalShowNarrative ? 'translate-x-[12px] border-white bg-white' : 'translate-x-0 bg-black'}`}></div>
+                <div className={`w-8 h-4 border-2 border-black flex items-center p-0.5 transition-colors shrink-0 ${showNarrative ? 'bg-black' : 'bg-white'}`}>
+                  <div className={`w-2 h-2 bg-white border border-black transition-transform ${showNarrative ? 'translate-x-[12px] border-white bg-white' : 'translate-x-0 bg-black'}`}></div>
                 </div>
               )}
             </button>
@@ -248,22 +259,38 @@ export const EditorView: React.FC<EditorViewProps> = ({
                   </div>
                   <div className="flex items-center">
                      {activeSlide.audioUrl && (
-                        <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
-                           <audio controls src={activeSlide.audioUrl} className="max-w-[200px]" />
-                           <button onClick={() => updateActiveSlide('audioUrl', null)} className="text-red-500 hover:scale-110 ml-2"><X size={12}/></button>
+                        <div className="flex items-center gap-1 mr-4 border-r-2 border-black pr-4 h-full">
+                           <audio 
+                             ref={audioRef} 
+                             src={activeSlide.audioUrl} 
+                             className="hidden" 
+                             onPlay={() => setIsPlayingAudio(true)}
+                             onPause={() => setIsPlayingAudio(false)}
+                             onEnded={() => setIsPlayingAudio(false)}
+                           />
+                           <button onClick={toggleAudio} className="w-6 h-6 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title={isPlayingAudio ? "Pause" : "Play"}>
+                             {isPlayingAudio ? <Pause size={10} /> : <Play size={10} className="fill-current ml-0.5" />}
+                           </button>
+                           <button onClick={restartAudio} className="w-6 h-6 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title="Restart">
+                             <RotateCcw size={10} />
+                           </button>
+                           <button onClick={() => updateActiveSlide('audioUrl', null)} className="w-6 h-6 flex items-center justify-center border-2 border-red-500 bg-white text-red-500 hover:bg-red-500 hover:text-white transition-colors ml-1" title="Remove Audio">
+                             <Trash2 size={10} />
+                           </button>
                         </div>
                      )}
                      <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
                         <button 
-                          onClick={toggleRecording}
-                          className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecordingState ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+                          onMouseDown={handleStartRecording} 
+                          onMouseUp={handleStopRecording}
+                          className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
                         >
-                          <Mic size={14} /> {isRecordingState ? 'REC...' : 'REC'}
+                          <Mic size={14} /> {isRecording ? 'REC...' : 'REC'}
                         </button>
                         <button onClick={() => audioInputRef.current?.click()} className="bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all">
                            <Upload size={14} />
                         </button>
-                        <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={localHandleAudioUpload} />
+                        <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
                      </div>
                     <div className="flex items-center gap-4">
                       <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">
@@ -337,18 +364,19 @@ export const EditorView: React.FC<EditorViewProps> = ({
               </div>
 
               {/* Dedicated Narrative Bar - Editable and Same Size as Preview Subtitles */}
-              {globalShowNarrative && !activeSlide.isFixed && (
-                <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative py-4">
+              {showNarrative && !activeSlide.isFixed && (
+                <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative py-4 min-h-[64px]">
                    <textarea 
                       ref={narrativeRef}
                       className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40"
                       value={activeSlide.content || ''}
                       onChange={(e) => {
-                        autoResizeNarrative();
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
                         updateActiveSlide('content', e.target.value);
                       }}
                       placeholder="Type narrative subtitles here..."
-                      style={{ minHeight: '64px' }}
+                      rows={1}
                    />
                 </div>
               )}

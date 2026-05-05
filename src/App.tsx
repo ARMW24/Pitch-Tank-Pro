@@ -481,9 +481,6 @@ function App() {
                  if (e.target) e.target.value = '';
                }}
                user={user}
-               isRecording={false}
-               handleStartRecording={() => {}}
-               handleStopRecording={() => {}}
                handleAudioUpload={() => {}}
                audioInputRef={audioInputRef}
                onLogout={handleSignOut}
