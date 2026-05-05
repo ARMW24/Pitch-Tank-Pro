@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { FloatingEditor } from './FloatingEditor';
-import * as pdfjsLib from 'pdfjs-dist';
+import { supabase } from '../../lib/supabase';
 
 interface EditorViewProps {
   project: Project;
@@ -27,6 +27,8 @@ interface EditorViewProps {
   handleUndo: () => void;
   handleRedo: () => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  user: any;
+  handleAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   audioInputRef: React.RefObject<HTMLInputElement>;
   onLogout: () => void;
 }
@@ -137,6 +139,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const tempUrl = URL.createObjectURL(audioBlob);
+        
+        // Optimistic update
         updateActiveSlide('audioUrl', tempUrl);
         
         if (user) {
@@ -168,9 +172,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
 
   return (
     <div className="h-full flex relative overflow-hidden group/sidebar bg-[#F4F4F1]">
-      {/* Sidebar - Re-added magnet hover handling */}
       <div className={`shrink-0 z-[100] h-full bg-[#F4F4F1] border-r-2 border-black relative transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
-        {/* Magnet Handle */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 -right-4 w-8 h-16 bg-white border-2 border-black/10 shadow-sm flex items-center justify-center cursor-pointer z-[60] hover:bg-black hover:text-white transition-all opacity-0 group-hover/sidebar:opacity-100 ${!isSidebarOpen && 'opacity-100 -right-8'}`}
@@ -247,7 +249,6 @@ export const EditorView: React.FC<EditorViewProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Main Preview Area */}
         <div className={`flex-1 flex flex-col overflow-hidden relative z-10 w-full min-h-[0] ${isFrameless ? '' : 'p-4 lg:p-8'}`}>
            <div className={`w-full flex-1 min-h-[0] ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
               {!isFrameless && (
@@ -258,31 +259,35 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
                   </div>
                   <div className="flex items-center">
-                     {activeSlide.audioUrl && (
-                        <div className="flex items-center gap-1 mr-4 border-r-2 border-black pr-4 h-full">
-                           <audio 
-                             ref={audioRef} 
-                             src={activeSlide.audioUrl} 
-                             className="hidden" 
-                             onPlay={() => setIsPlayingAudio(true)}
-                             onPause={() => setIsPlayingAudio(false)}
-                             onEnded={() => setIsPlayingAudio(false)}
-                           />
-                           <button onClick={toggleAudio} className="w-6 h-6 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title={isPlayingAudio ? "Pause" : "Play"}>
-                             {isPlayingAudio ? <Pause size={10} /> : <Play size={10} className="fill-current ml-0.5" />}
-                           </button>
-                           <button onClick={restartAudio} className="w-6 h-6 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title="Restart">
-                             <RotateCcw size={10} />
-                           </button>
-                           <button onClick={() => updateActiveSlide('audioUrl', null)} className="w-6 h-6 flex items-center justify-center border-2 border-red-500 bg-white text-red-500 hover:bg-red-500 hover:text-white transition-colors ml-1" title="Remove Audio">
-                             <Trash2 size={10} />
-                           </button>
-                        </div>
-                     )}
+                     {/* Audio Controls */}
+                     <div className="flex items-center gap-1 mr-4 border-r-2 border-black pr-4 h-full">
+                        {activeSlide.audioUrl && (
+                           <>
+                              <audio 
+                                ref={audioRef} 
+                                src={activeSlide.audioUrl} 
+                                className="hidden" 
+                                onPlay={() => setIsPlayingAudio(true)}
+                                onPause={() => setIsPlayingAudio(false)}
+                                onEnded={() => setIsPlayingAudio(false)}
+                              />
+                              <button onClick={toggleAudio} className="w-6 h-6 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title={isPlayingAudio ? "Pause" : "Play"}>
+                                {isPlayingAudio ? <Pause size={10} /> : <Play size={10} className="fill-current ml-0.5" />}
+                              </button>
+                              <button onClick={restartAudio} className="w-6 h-6 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title="Restart">
+                                <RotateCcw size={10} />
+                              </button>
+                              <button onClick={() => updateActiveSlide('audioUrl', null)} className="w-6 h-6 flex items-center justify-center border-2 border-red-500 bg-white text-red-500 hover:bg-red-500 hover:text-white transition-colors ml-1" title="Remove Audio">
+                                <Trash2 size={10} />
+                              </button>
+                           </>
+                        )}
+                     </div>
                      <div className="flex items-center gap-2 mr-4 border-r-2 border-black pr-4 h-full">
                         <button 
                           onMouseDown={handleStartRecording} 
                           onMouseUp={handleStopRecording}
+                          onMouseLeave={handleStopRecording}
                           className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'bg-white text-black hover:bg-black hover:text-white'}`}
                         >
                           <Mic size={14} /> {isRecording ? 'REC...' : 'REC'}
@@ -318,11 +323,54 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     className="w-full h-full flex items-center justify-center relative"
                   >
                     {activeSlide.imageUrl ? (
-                      <img 
-                        src={activeSlide.imageUrl} 
-                        className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
-                        alt={activeSlide.title} 
-                      />
+                      <div className="w-full h-full relative z-10">
+                        <img 
+                          src={activeSlide.imageUrl} 
+                          className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
+                          alt={activeSlide.title} 
+                        />
+                        
+                        {/* Interactive Markers Rendering */}
+                        {[1, 2, 3].map(num => {
+                          const ytMarker = activeSlide[`youtubeMarker${num}`];
+                          const galMarker = activeSlide[`galleryMarker${num}`];
+                          const noteMarker = activeSlide[`noteMarker${num}`];
+                          const docMarker = activeSlide[`docMarker${num}`];
+                          
+                          return (
+                            <React.Fragment key={num}>
+                               {ytMarker && (
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
+                                    <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                      <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
+                                    </div>
+                                  </div>
+                               )}
+                               {galMarker && galMarker.images && galMarker.images.length > 0 && (
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
+                                    <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                      <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
+                                    </div>
+                                  </div>
+                               )}
+                               {noteMarker && noteMarker.text && (
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
+                                    <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                      <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
+                                    </div>
+                                  </div>
+                               )}
+                               {docMarker && docMarker.url && (
+                                  <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}>
+                                    <div className="bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                      <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
+                                    </div>
+                                  </div>
+                               )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
                     ) : activeSlide.isFixed ? (
                       <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>
                         <h1 className="text-[6vw] font-serif font-black uppercase mb-6 tracking-tighter italic leading-none">{activeSlide.title}</h1>
@@ -356,19 +404,14 @@ export const EditorView: React.FC<EditorViewProps> = ({
                        <button onClick={handleRedo} className="p-2 hover:bg-black hover:text-white transition-colors"><Redo2 size={16}/></button>
                     </div>
                 </div>
-
-                <div className="absolute bottom-6 right-6 flex flex-col items-end gap-3 z-40">
-                   <div className="flex gap-2 pointer-events-auto">
-                   </div>
-                </div>
               </div>
 
               {/* Dedicated Narrative Bar - Editable and Same Size as Preview Subtitles */}
               {showNarrative && !activeSlide.isFixed && (
-                <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-12 shrink-0 relative py-4 min-h-[64px]">
+                <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-6 md:px-12 shrink-0 relative py-4">
                    <textarea 
                       ref={narrativeRef}
-                      className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40"
+                      className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40 min-h-[64px] flex items-center justify-center"
                       value={activeSlide.content || ''}
                       onChange={(e) => {
                         e.target.style.height = 'auto';

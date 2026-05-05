@@ -481,7 +481,22 @@ function App() {
                  if (e.target) e.target.value = '';
                }}
                user={user}
-               handleAudioUpload={() => {}}
+                               handleAudioUpload={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !user) return;
+                  const path = `users/${user.id}/audio/${Date.now()}_${file.name}`;
+                  const { data, error } = await supabase.storage.from('assets').upload(path, file);
+                  if (error) {
+                    console.error('Audio Upload Error:', error);
+                    alert('Failed to upload audio.');
+                    return;
+                  }
+                  if (data) {
+                    const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
+                    updateActiveSlide('audioUrl', publicUrl);
+                  }
+                  if (e.target) e.target.value = '';
+                }}
                audioInputRef={audioInputRef}
                onLogout={handleSignOut}
             />
