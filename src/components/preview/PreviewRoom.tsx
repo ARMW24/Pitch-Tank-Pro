@@ -173,13 +173,6 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                   <span className="text-[9px] font-mono font-bold uppercase tracking-widest">Subs</span>
                 </label>
               </div>
-              
-              <div className="flex items-center gap-1 bg-white border-2 border-black pl-1 shrink-0 ml-2">
-                  <button onClick={handlePrev} disabled={slideIndex === 0} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronLeft size={16}/></button>
-                  <span className="font-mono font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap pt-0.5 px-2">Pg {slideIndex + 1} / {slides.length}</span>
-                  <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronRight size={16}/></button>
-              </div>
-
               <div className="bg-white border-2 border-black flex items-center p-1 shrink-0">
                 <button 
                   onClick={() => setInteractiveMode(false)}
@@ -204,7 +197,14 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                 </button>
               </div>
               <div className="w-[2px] h-6 bg-black/10 mx-1 md:mx-2 hidden sm:block"></div>
-              <button onClick={onBack} className="bg-white border-2 border-black text-black hover:bg-black hover:text-white px-3 py-1.5 md:px-6 md:py-2 font-mono font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors shrink-0">Exit Room</button>
+              
+              <div className="flex items-center gap-1 bg-white border-2 border-black pl-1 shrink-0">
+                  <button onClick={handlePrev} disabled={slideIndex === 0} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronLeft size={16}/></button>
+                  <span className="font-mono font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap pt-0.5 px-2">Pg {slideIndex + 1} / {slides.length}</span>
+                  <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronRight size={16}/></button>
+              </div>
+
+              <button onClick={onBack} className="bg-white border-2 border-black text-black hover:bg-black hover:text-white px-3 py-1.5 md:px-6 md:py-2 font-mono font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors shrink-0 ml-2">Exit</button>
           </div>
         </header>
       )}

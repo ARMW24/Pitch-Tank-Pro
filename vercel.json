@@ -1,4 +1,5 @@
 {
+  "name": "pitch-tank",
   "rewrites": [
     {
       "source": "/(.*)",
