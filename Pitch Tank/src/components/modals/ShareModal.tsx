@@ -35,8 +35,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCance
            <div>
              <label className="text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2 block">Access Code (For Homepage)</label>
              <div className="flex items-center gap-2">
-                <input value={project.pinCode} readOnly className="flex-1 bg-gray-50 border border-gray-300 p-2 text-sm font-mono font-bold outline-none uppercase tracking-widest" />
-                <button onClick={() => { navigator.clipboard.writeText(project.pinCode || ''); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 2000); }} className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shrink-0">
+                <input value={project.pin} readOnly className="flex-1 bg-gray-50 border border-gray-300 p-2 text-sm font-mono font-bold outline-none uppercase tracking-widest" />
+                <button onClick={() => { navigator.clipboard.writeText(project.pin || ''); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 2000); }} className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shrink-0">
                   {copiedCode ? <Check size={16} /> : <Copy size={16} />}
                 </button>
              </div>

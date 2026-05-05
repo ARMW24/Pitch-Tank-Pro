@@ -357,7 +357,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     })}
                   </div>
 
-                  {showSubtitles && currentSlide.content && !currentSlide.isFixed && (
+                  {showSubtitles && currentSlide.content && (
                     <div className={`w-full shrink-0 text-white px-4 py-3 md:px-6 md:py-4 text-center z-40 mt-0 md:mt-4 md:rounded-sm ${isFrameless ? 'bg-black/80 backdrop-blur-sm border-t border-white/20 relative' : 'bg-black shadow-[0_-4px_10px_rgba(0,0,0,0.2)] md:shadow-none border-t-2 md:border-2 border-white/10 md:border-transparent'}`}>
                       <p className="font-serif italic text-sm md:text-lg leading-relaxed whitespace-pre-wrap">{currentSlide.content}</p>
                     </div>

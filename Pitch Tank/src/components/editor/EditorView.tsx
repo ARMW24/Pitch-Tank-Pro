@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, ChevronRight, LayoutDashboard, Settings2, Eye, 
-  Share2, FileText, Cpu, Trash2, ImageIcon, Play, Plus, 
-  Maximize, Undo2, Redo2, Layers, Youtube, Send, X, Upload,
-  Mic, ShieldCheck, LogOut
+  Plus, Copy, Trash2, LayoutDashboard, Target, LogOut, Search, Shield, Zap,
+  Mic, ShieldCheck, ChevronUp, ChevronDown, 
+  ChevronLeft, ChevronRight, Upload, Play, MoreVertical,
+  Settings2, Eye, Share2, FileText, Cpu, ImageIcon, Maximize, Undo2, Redo2, Layers, Youtube, Send, X
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { FloatingEditor } from './FloatingEditor';
@@ -96,13 +96,22 @@ export const EditorView: React.FC<EditorViewProps> = ({
   return (
     <div className="flex-1 flex flex-row bg-[#F4F4F1] overflow-hidden text-black font-sans relative z-10 w-full h-full">
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} shrink-0 bg-white border-r-2 border-black transition-all duration-300 flex flex-col z-50 overflow-hidden relative`}>
-         <div className="h-16 border-b-2 border-black flex items-center justify-between px-4 shrink-0 bg-[#F4F4F1]">
-            {isSidebarOpen && <span className="font-serif font-black italic truncate pr-4">{project.name}</span>}
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1.5 hover:bg-black hover:text-white border-2 border-transparent focus:border-black rounded-none transition-colors">
-              {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-            </button>
-         </div>
+      <div className={`${isSidebarOpen ? 'w-64' : 'w-1'} shrink-0 bg-white border-r border-black/5 transition-all duration-500 ease-in-out flex flex-col z-50 relative group/sidebar`}>
+        {/* Magnet Handle */}
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className={`absolute top-1/2 -translate-y-1/2 -right-4 w-8 h-16 bg-white border-2 border-black/10 shadow-sm flex items-center justify-center cursor-pointer z-[60] hover:bg-black hover:text-white transition-all opacity-0 group-hover/sidebar:opacity-100 ${!isSidebarOpen && 'opacity-100 -right-8'}`}
+        >
+          {isSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+        </button>
+
+        <div className={`flex flex-col h-full ${!isSidebarOpen && 'invisible opacity-0'} transition-all duration-300`}>
+          <div className="p-6 border-b border-black/5">
+             <h2 className="text-xl font-serif font-black italic uppercase tracking-tighter flex items-center gap-2">
+                <Target size={24} className="text-black" />
+                <span>Pitch Room</span>
+             </h2>
+          </div>
          <div className="flex-1 py-6 flex flex-col gap-2">
             <button onClick={() => setView('dashboard')} className="flex items-center gap-4 px-5 py-3 hover:bg-gray-100 transition-colors w-full text-left group">
               <LayoutDashboard size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
@@ -145,6 +154,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
             </div>
          </div>
       </div>
+    </div>
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <AnimatePresence>
