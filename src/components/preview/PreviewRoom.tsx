@@ -248,7 +248,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full h-full flex flex-col items-center justify-center relative p-0 md:p-8 min-h-0 min-w-0 overflow-hidden"
+                  className="flex-1 w-full flex flex-col items-center justify-center relative p-0 md:p-8 min-h-0 min-w-0 overflow-hidden"
                 >
                   {currentSlide.audioUrl && (
                      <audio 
