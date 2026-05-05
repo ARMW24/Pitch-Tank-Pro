@@ -354,29 +354,37 @@ export const EditorView: React.FC<EditorViewProps> = ({
                             <React.Fragment key={num}>
                                {ytMarker && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                      <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                        <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
+                                      </div>
                                     </motion.div>
                                   </div>
                                )}
                                {galMarker && galMarker.images && galMarker.images.length > 0 && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                      <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                        <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
+                                      </div>
                                     </motion.div>
                                   </div>
                                )}
                                {noteMarker && noteMarker.text && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                      <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                        <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
+                                      </div>
                                     </motion.div>
                                   </div>
                                )}
                                {docMarker && docMarker.url && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, width: 0, height: 0 }}>
-                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} className="absolute -translate-x-1/2 -translate-y-1/2 cursor-move bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                      <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
+                                    <motion.div drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move">
+                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                        <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
+                                      </div>
                                     </motion.div>
                                   </div>
                                )}
@@ -406,17 +414,17 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 </AnimatePresence>
                 
                 {/* Floating Actions */}
-                <div className="absolute top-6 right-6 flex flex-col gap-3 z-40">
-                    {isFrameless && (
-                       <button onClick={() => setIsFrameless(false)} className="bg-white border-2 border-black px-4 py-2 font-mono text-[10px] uppercase font-black hover:bg-black hover:text-white transition-colors shadow-[4px_4px_0_0_#000]">
-                         Show Frame
-                       </button>
-                    )}
-                    <div className="bg-white border-2 border-black flex items-center p-1 shadow-[4px_4px_0_0_#000]">
-                       <button onClick={handleUndo} className="p-2 hover:bg-black hover:text-white transition-colors border-r-2 border-black"><Undo2 size={16}/></button>
-                       <button onClick={handleRedo} className="p-2 hover:bg-black hover:text-white transition-colors"><Redo2 size={16}/></button>
-                    </div>
-                </div>
+                {isFrameless && (
+                  <div className="absolute top-6 right-6 flex items-center gap-3 z-40">
+                      <div className="bg-white border-2 border-black flex items-center shadow-[4px_4px_0_0_#000] h-10">
+                         <button onClick={onPrevSlide} disabled={!canPrev} className="w-10 h-full flex items-center justify-center hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-black transition-colors border-r-2 border-black"><ChevronLeft size={16}/></button>
+                         <button onClick={onNextSlide} disabled={!canNext} className="w-10 h-full flex items-center justify-center hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-black transition-colors"><ChevronRight size={16}/></button>
+                      </div>
+                      <button onClick={() => setIsFrameless(false)} className="bg-white border-2 border-black px-4 h-10 font-mono text-[10px] uppercase font-black hover:bg-black hover:text-white transition-colors shadow-[4px_4px_0_0_#000]">
+                        Show Frame
+                      </button>
+                  </div>
+                )}
               </div>
 
               {/* Dedicated Narrative Bar - Editable and Same Size as Preview Subtitles */}
