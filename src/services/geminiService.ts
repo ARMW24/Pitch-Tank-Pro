@@ -1,59 +1,75 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 let aiInstance: any = null;
 
 const getAI = () => {
   if (aiInstance) return aiInstance;
   
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  // Follow platform instructions strictly: Always use process.env.GEMINI_API_KEY if possible, but fallback to VITE_GEMINI_API_KEY
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : '');
   
   if (!apiKey) {
-    throw new Error("Gemini API key is missing. Please set VITE_GEMINI_API_KEY in your .env file.");
+    throw new Error("Gemini API key is missing. Please set VITE_GEMINI_API_KEY in your environment.");
   }
   
-  aiInstance = new GoogleGenerativeAI(apiKey);
+  aiInstance = new GoogleGenAI({ apiKey });
   return aiInstance;
 };
 
 export const getGeminiChatResponse = async (messages: {role: string, text: string}[], contextFiles: any[], currentSlideContent: string) => {
   const ai = getAI();
   
-  const systemInstruction = `You are a helpful AI agent representing the founder of this pitch.
-Your goal is to answer investor queries professionally, politely, and CONCISELY.
+  const systemInstruction = `You are the Expert Visionary Founder and C.E.O. of this specific high-growth startup project.
+Your goal is to satisfy potential Venture Capitalists (VCs) and Angel Investors. 
+Respond with high intelligence, professional charisma, and strategic clarity.
 
-STRICT GUIDELINES:
-1. BREVITY: Keep answers under 800 characters unless explicitly asked for a detailed breakdown.
-2. RELEVANCE: Answer ONLY what is asked. Do NOT jump to funding targets or ARR projections unless the user asks about financials, plans, or "talk about the project".
-3. GREETING: If someone says "Hi" or "Hello", just greet them back warmly and ask how you can help them explore the pitch.
+CRITICAL DIRECTIVES:
+1. CHARISMA: Be bold yet humble. You believe in your vision 100%. 
+2. BREVITY: Investors are busy. Keep responses under 600 characters unless detailing complex metrics.
+3. DATA-DRIVEN: Use the "Knowledge Base" and "Slide Content" below as your internal project documentation. If specific numbers aren't found, speak strategically rather than making them up.
+4. LANGUAGE: Answer in the SAME LANGUAGE as the user's previous message (Default to English if unsure).
+5. GREETING: Warmly acknowledge visitors as potential partners.
 
-Context from current slide:
-${currentSlideContent || 'No slide content available.'}
-  
-Knowledge Base Files:
-${contextFiles.map((f, i) => `File ${i+1} (${f.name}):\n${f.content || 'Content not extracted'}`).join('\n\n')}`;
+Knowledge Base (Your internal docs):
+${contextFiles.map((f, i) => `File: ${f.name}\n${f.content || 'Content not extracted'}`).join('\n\n')}
 
-  const model = ai.getGenerativeModel({ 
-    model: "gemini-1.5-flash",
-    systemInstruction
-  });
+Current Deck Context:
+${currentSlideContent || 'No specific slide content visible.'}`;
 
-  const chat = model.startChat({
-    history: messages.slice(0, -1).map(m => ({
-      role: m.role === 'ai' ? 'model' : 'user',
-      parts: [{ text: m.text }]
-    })),
-  });
+  const chatMessages = messages.map(m => ({
+     role: m.role === 'ai' ? 'model' : 'user',
+     parts: [{ text: m.text }]
+  }));
 
-  try {
-    const result = await chat.sendMessage(messages[messages.length - 1].text);
-    const response = await result.response;
-    return response.text() || "I'm unable to answer that right now.";
-  } catch (err: any) {
-    console.error("Gemini Error:", err);
-    if (err.message?.includes("429") || err.message?.includes("QUOTA")) {
-      return "The AI consultant is currently at maximum capacity (Usage Quota Reached). Please try again in 1-2 minutes.";
+  // Try multiple models in order of preference
+  const preferredModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+  let finalResponse = "";
+  let lastError = "";
+
+  for (const modelName of preferredModels) {
+    try {
+      const model = ai.models.generateContent({
+        model: modelName,
+        contents: chatMessages,
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+        }
+      });
+      const response = await model;
+      finalResponse = response.text || "";
+      if (finalResponse) break;
+    } catch (err: any) {
+      console.warn(`Model ${modelName} failed:`, err.message);
+      lastError = err.message;
+      continue;
     }
-    throw new Error(err.message || "Failed to get AI response.");
   }
-};
 
+  if (finalResponse) return finalResponse;
+  
+  if (lastError.includes("429") || lastError.includes("QUOTA")) {
+    return "The AI consultant is currently occupied with other investors. Please try again in 1-2 minutes.";
+  }
+  return "I'm experiencing a temporary technical glitch in my knowledge engine. Let me get back to you shortly.";
+};
