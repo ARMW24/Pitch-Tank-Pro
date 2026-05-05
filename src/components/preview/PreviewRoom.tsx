@@ -235,7 +235,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
 
       <div className={`flex-1 flex overflow-hidden relative z-10 w-full min-h-[0]`}>
         <div className={`flex-1 relative flex flex-col items-center justify-center min-w-[0] ${isFrameless ? '' : 'p-4 lg:p-10'} `}>
-            <div className={`w-full h-full relative flex flex-col group ${isFrameless ? '' : 'shadow-[8px_8px_0_0_rgba(0,0,0,1)] border-2 border-black bg-white'} overflow-hidden`}>
+            <div className={`w-full ${isFrameless ? 'h-full' : 'aspect-[16/9] h-auto max-w-full max-h-full'} relative flex flex-col group ${isFrameless ? '' : 'shadow-[8px_8px_0_0_rgba(0,0,0,1)] border-2 border-black bg-white'} overflow-hidden`}>
                {isFrameless && (
                   <div className="absolute top-4 right-4 z-[100] flex gap-2 items-center">
                     <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded text-white shadow-lg mr-2">
