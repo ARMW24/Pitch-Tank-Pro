@@ -66,7 +66,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <h1 className="text-5xl lg:text-7xl font-sans font-black tracking-tighter leading-none">INVESTMENT<br/>ROOMS</h1>
         </header>
 
-        </header>
+
 
         {loading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4 bg-white border-2 border-black shadow-[8px_8px_0_0_#000]">
