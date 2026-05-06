@@ -14,6 +14,7 @@ import { DashboardView } from './components/dashboard/DashboardView';
 import { EditorView } from './components/editor/EditorView';
 import { TrackingView } from './components/dashboard/TrackingView';
 import { PreviewRoom } from './components/preview/PreviewRoom';
+import { LoginView } from './components/LoginView';
 
 // Modals
 import { NewProjectModal } from './components/modals/NewProjectModal';
@@ -241,93 +242,9 @@ function App() {
   }
 
 
-  // Auth UI (Landing Page) - ONLY show if not logged in
+  // Auth UI (Landing Page / Simple Login Page)
   if (!user && view !== 'preview') {
-    return (
-      <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center relative overflow-hidden p-6 md:p-12">
-        <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
-        
-        <div className="max-w-6xl w-full flex flex-col lg:flex-row items-center justify-between gap-16 relative z-10 mt-12 lg:mt-24">
-          {/* Hero Section */}
-          <div className="flex-1 space-y-10 text-center lg:text-left">
-             <div className="inline-block bg-black text-white px-4 py-1 font-mono text-[10px] uppercase tracking-widest font-bold">FOUNDER ACCESS</div>
-             <h1 className="text-6xl md:text-8xl font-serif font-black italic uppercase leading-[0.85] tracking-tighter text-black">
-                Pitch <br/> <span className="text-outline">Tank</span>
-             </h1>
-             <p className="text-xl md:text-2xl font-mono text-gray-700 max-w-xl leading-relaxed">
-                The world's first <span className="font-bold underline decoration-4">Interactive Pitch</span>
-             </p>
-
-             <div className="pt-8 flex flex-col items-center lg:items-start gap-4">
-                <button 
-                   onClick={() => signInWithGoogle().catch(err => alert("Login Error: " + err.message + "\n\nPlease ensure your Vercel URL is added to Supabase Redirect URLs."))}
-                   className="bg-white border-2 border-black py-5 px-8 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[12px_12px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
-                >
-                   <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
-                   <span className="font-mono font-black text-sm uppercase tracking-widest">Sign in with Google</span>
-                </button>
-                <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Founders Only • Private Room Management</p>
-             </div>
-          </div>
-
-          {/* Access Card */}
-          <div className="w-full max-w-md bg-white border-2 border-black p-10 shadow-[16px_16px_0_0_#000] space-y-8 relative">
-             <div className="absolute -top-4 -right-4 bg-black text-white px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest shadow-lg">Visitor Access</div>
-             
-             <div className="space-y-6">
-                <div className="flex items-center gap-4 border-b-2 border-black pb-4">
-                   <ShieldCheck size={28} />
-                   <h2 className="text-2xl font-serif font-black italic uppercase">Angel / VC Access</h2>
-                </div>
-                
-                <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Enter the access code provided by the founder:</p>
-                
-                <div className="space-y-4">
-                   <div className="relative">
-                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input 
-                         className="w-full bg-gray-50 border-2 border-black pl-12 pr-4 py-4 font-mono text-sm focus:bg-white outline-none" 
-                         placeholder="Your Name (e.g. VC Name)"
-                         value={visitorName}
-                         onChange={e => setVisitorName(e.target.value)}
-                      />
-                   </div>
-                   <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input 
-                         className="w-full bg-gray-50 border-2 border-black pl-12 pr-4 py-4 font-mono text-sm focus:bg-white outline-none" 
-                         placeholder="Your Email Address"
-                         value={visitorEmail}
-                         onChange={e => setVisitorEmail(e.target.value)}
-                      />
-                   </div>
-                   
-                   <div className="pt-4">
-                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Access PIN</label>
-                      <div className="flex gap-3">
-                         <input 
-                            className="w-full bg-white border-2 border-black px-4 py-4 text-xl font-mono font-bold tracking-[0.1em] uppercase outline-none focus:bg-gray-50"
-                            maxLength={8}
-                            placeholder="CODE"
-                            value={pin}
-                            onChange={e => setPin(e.target.value.toUpperCase())}
-                         />
-                         <button 
-                            onClick={handlePinJoin}
-                            disabled={joining || pin.length < 4}
-                            className="bg-black text-white px-6 py-4 hover:bg-gray-800 disabled:opacity-30 transition-all flex items-center justify-center shrink-0"
-                         >
-                            {joining ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <ArrowRight size={20} />}
-                         </button>
-                      </div>
-                      {error && <p className="text-red-600 font-mono text-[10px] uppercase font-bold text-center mt-4">{error}</p>}
-                   </div>
-                </div>
-             </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoginView onLogin={() => signInWithGoogle().catch(err => alert("Login Error: " + err.message + "\n\nPlease ensure your Vercel URL is added to Supabase Redirect URLs."))} />;
   }
 
   // Logged In Router
