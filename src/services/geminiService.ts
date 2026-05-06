@@ -32,7 +32,7 @@ Knowledge Base (Your internal docs):
 ${contextFiles.filter(f => f.type !== 'settings').map((f, i) => `File: ${f.name}\n${f.content || 'Content not extracted'}`).join('\n\n')}
 
 Current Deck Context:
-${currentSlideContent || 'No specific slide content visible.'}\`;
+${currentSlideContent || 'No specific slide content visible.'}`;
 
   const chatMessages = messages.map(m => ({
      role: m.role === 'ai' ? 'model' : 'user',
