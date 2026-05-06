@@ -92,7 +92,7 @@ function App() {
     getProject
   } = useProjects(user);
 
-  const [view, setView] = useState<'landing' | 'dashboard' | 'editor' | 'tracking' | 'preview'>('landing');
+  const [view, setView] = useState<'landing' | 'dashboard' | 'editor' | 'tracking' | 'preview' | 'visitor_auth'>('landing');
   const [activePid, setActivePid] = useState<string | null>(null);
   const [activeSid, setActiveSid] = useState<string | number | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -167,7 +167,7 @@ function App() {
     if (project) {
       setProjectToEdit(project);
       setActivePid(pid);
-      setView('preview');
+      setView('visitor_auth');
     }
   };
 
@@ -179,6 +179,12 @@ function App() {
     try {
       const project = await findProjectByPin(pin.toUpperCase());
       if (project) {
+        if (projectToEdit && projectToEdit.id !== project.id) {
+           setError('Invalid Access Code for this room');
+           setJoining(false);
+           return;
+        }
+        
         const sessId = crypto.randomUUID();
         // Record session asynchronously
         supabase.from('sessions').insert({
@@ -241,8 +247,69 @@ function App() {
   }
 
 
+  if (view === 'visitor_auth' && projectToEdit) {
+    return (
+      <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center justify-center p-6 relative">
+        <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
+        <div className="max-w-md w-full bg-white border-4 border-black p-8 md:p-12 shadow-[16px_16px_0_0_#000] relative z-10 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center text-white mb-6 shadow-xl">
+             <Shield size={32} />
+          </div>
+          <h1 className="text-3xl font-serif font-black italic uppercase tracking-tighter mb-2">{projectToEdit.name}</h1>
+          <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-8">Secure Access Required</p>
+
+          <div className="w-full bg-gray-50 border-l-4 border-black p-4 mb-8 text-left">
+             <p className="text-xs font-mono text-gray-700 leading-relaxed">Welcome to the Founder's Private Pitch Room. Your presence and engagement metrics will be logged for review by the project owner.</p>
+          </div>
+
+          <div className="w-full space-y-6 text-left">
+             <div>
+                <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-2 text-gray-600">Enter Access Code</label>
+                <input 
+                   className="w-full bg-white border-2 border-black p-4 text-center font-mono text-xl font-bold tracking-[0.25em] outline-none focus:bg-gray-50"
+                   maxLength={8}
+                   placeholder="CODE"
+                   value={pin}
+                   onChange={e => setPin(e.target.value.toUpperCase())}
+                />
+             </div>
+             <div>
+                <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-2 text-gray-600">Your Name (Internal Record)</label>
+                <input 
+                   className="w-full bg-white border-2 border-black p-4 font-mono text-sm outline-none focus:bg-gray-50"
+                   placeholder="e.g. V.C. Partner"
+                   value={visitorName}
+                   onChange={e => setVisitorName(e.target.value)}
+                />
+             </div>
+
+             {error && <p className="text-red-500 font-mono text-xs text-center">{error}</p>}
+
+             <button 
+                onClick={handlePinJoin}
+                disabled={joining || !pin || !visitorName}
+                className="w-full bg-black text-white border-2 border-black p-4 font-mono font-bold uppercase tracking-widest text-sm hover:bg-gray-800 disabled:opacity-50 transition-colors shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1 mt-4"
+             >
+                {joining ? 'Verifying...' : 'Authorize Access'}
+             </button>
+
+             <div className="pt-6 text-center">
+                <button onClick={() => {
+                   window.history.pushState({}, document.title, '/');
+                   setView('landing');
+                   setProjectToEdit(null);
+                }} className="text-[10px] font-mono text-gray-500 hover:text-black uppercase tracking-widest underline underline-offset-4 decoration-gray-300 hover:decoration-black transition-colors">
+                   Leave this room
+                </button>
+             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Auth UI (Landing Page) - ONLY show if not logged in
-  if (!user && view !== 'preview') {
+  if (!user && view !== 'preview' && view !== 'visitor_auth') {
     return (
       <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center relative overflow-hidden p-6 md:p-12">
         <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
@@ -498,10 +565,27 @@ function App() {
          {view === 'preview' && activeProject && (
             <PreviewRoom 
                project={activeProject}
-               onBack={() => user ? setView('editor') : setView('landing')}
+               onBack={() => {
+                 if (user) {
+                   setView('editor');
+                 } else {
+                   setView('landing');
+                   setProjectToEdit(null);
+                   setVisitorSessionId(null);
+                   window.history.replaceState({}, document.title, '/');
+                 }
+               }}
                initialSid={activeSid}
                visitorSessionId={visitorSessionId}
                onUpdateSlide={(sid, field, val) => {
+                 if (visitorSessionId) {
+                   setProjectToEdit(prev => {
+                     if (!prev) return prev;
+                     return { ...prev, slides: prev.slides.map(s => s.id === sid ? { ...s, [field]: val } : s) };
+                   });
+                   return;
+                 }
+                 
                  if (historyIndex === -1) captureHistory(activeProject.slides);
                  captureHistory(activeProject.slides);
                  const newSlides = activeProject.slides.map(s => 
