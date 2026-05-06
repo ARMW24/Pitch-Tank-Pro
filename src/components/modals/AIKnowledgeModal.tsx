@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Cpu, X, FileText, Trash2, ShieldCheck } from 'lucide-react';
+import { Cpu, X, FileText, Trash2, ShieldCheck, Key, MessageSquare } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 
 interface AIKnowledgeModalProps {
@@ -11,14 +11,22 @@ interface AIKnowledgeModalProps {
 }
 
 export const AIKnowledgeModal: React.FC<AIKnowledgeModalProps> = ({ isOpen, project, onCancel, onSave }) => {
-  const [files, setFiles] = useState<any[]>(project?.aiKnowledgeFiles || []);
+  const [files, setFiles] = useState<any[]>([]);
+  const [apiKey, setApiKey] = useState('');
+  const [prompt, setPrompt] = useState('');
   const [isAddingText, setIsAddingText] = useState(false);
   const [customText, setCustomText] = useState('');
   const [textTitle, setTextTitle] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setFiles(project?.aiKnowledgeFiles || []);
+      const allFiles = project?.aiKnowledgeFiles || [];
+      const settingsFile = allFiles.find(f => f.type === 'settings');
+      const normalFiles = allFiles.filter(f => f.type !== 'settings');
+      
+      setFiles(normalFiles);
+      setApiKey(settingsFile?.apiKey || '');
+      setPrompt(settingsFile?.prompt || '');
     }
   }, [isOpen, project]);
 
@@ -61,10 +69,18 @@ export const AIKnowledgeModal: React.FC<AIKnowledgeModalProps> = ({ isOpen, proj
     setIsAddingText(false);
   };
 
+  const handleSaveAll = () => {
+    const dataToSave = [
+      { type: 'settings', apiKey, prompt },
+      ...files
+    ];
+    onSave(dataToSave);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#F4F4F1] border-2 border-black p-8 max-w-xl w-full shadow-[8px_8px_0_0_#000] rounded-none flex flex-col max-h-[90vh]">
-        <div className="flex justify-between items-center mb-6">
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#F4F4F1] border-2 border-black p-6 md:p-8 max-w-2xl w-full shadow-[8px_8px_0_0_#000] rounded-none flex flex-col max-h-[95vh]">
+        <div className="flex justify-between items-center mb-6 shrink-0">
            <h3 className="font-serif font-black italic text-2xl uppercase tracking-tighter text-black flex items-center gap-3"><Cpu size={24}/> AI Knowledge Base</h3>
            <button onClick={onCancel} className="p-2 hover:bg-black hover:text-white border-2 border-transparent transition-colors"><X size={20}/></button>
         </div>
@@ -79,52 +95,91 @@ export const AIKnowledgeModal: React.FC<AIKnowledgeModalProps> = ({ isOpen, proj
              </div>
           </div>
         ) : (
-          <>
-            <p className="text-xs font-mono text-gray-600 mb-6 leading-relaxed">
-              Upload text, PDF, or DOC files, or type notes directly. The Founder Clone will use this data to answer investor queries in the Preview Room.
-            </p>
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar-vertical flex flex-col min-h-0">
+            {/* API Key Section */}
+            <div className="mb-6 shrink-0">
+               <label className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-black mb-2"><Key size={12}/> API Key</label>
+               <div className="flex gap-2">
+                  <input 
+                     type="password" 
+                     value={apiKey} 
+                     onChange={e => setApiKey(e.target.value)} 
+                     placeholder="sk-..." 
+                     className="flex-1 bg-white border-2 border-black p-3 font-mono text-sm focus:outline-none" 
+                  />
+                  <button 
+                     onClick={() => {
+                        handleSaveAll();
+                        alert("API Key saved successfully!");
+                     }} 
+                     className="bg-black text-white px-6 font-mono font-bold text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-colors shrink-0"
+                  >
+                     Save
+                  </button>
+               </div>
+               <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-2">Required for the AI Agent to process questions in this room.</p>
+            </div>
 
-            <div className="flex-1 overflow-y-auto mb-6 bg-white border-2 border-black p-4 space-y-3 min-h-[160px]">
-              {files.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-40 text-gray-400">
-                   <ShieldCheck size={32} className="mb-2 opacity-50" />
-                   <span className="font-mono text-[10px] uppercase font-bold tracking-widest">No Knowledge Base</span>
-                </div>
-              ) : (
-                files.map((file, i) => (
-                  <div key={i} className="flex justify-between items-center p-3 border-2 border-black bg-[#F4F4F1]">
-                     <div className="flex items-center gap-3 overflow-hidden">
-                        <FileText size={16} className="shrink-0" />
-                        <span className="font-mono text-xs font-bold truncate">{file.name}</span>
-                        <span className="font-mono text-[9px] text-gray-500 shrink-0">{(file.size / 1024).toFixed(1)} KB</span>
-                     </div>
-                     <button onClick={() => removeFile(i)} className="text-red-600 hover:text-red-800 shrink-0"><Trash2 size={14}/></button>
+            {/* Knowledge Files Section */}
+            <div className="mb-6 flex-1 flex flex-col min-h-0 shrink-0">
+              <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-black mb-2">Knowledge Documents</label>
+              <div className="flex-1 overflow-y-auto bg-white border-2 border-black p-4 space-y-3 min-h-[120px] max-h-[200px] custom-scrollbar-vertical">
+                {files.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400 py-6">
+                     <ShieldCheck size={32} className="mb-2 opacity-50" />
+                     <span className="font-mono text-[10px] uppercase font-bold tracking-widest">No Knowledge Base</span>
                   </div>
-                ))
-              )}
+                ) : (
+                  files.map((file, i) => (
+                    <div key={i} className="flex justify-between items-center p-3 border-2 border-black bg-[#F4F4F1]">
+                       <div className="flex items-center gap-3 overflow-hidden">
+                          <FileText size={16} className="shrink-0" />
+                          <span className="font-mono text-xs font-bold truncate">{file.name}</span>
+                          <span className="font-mono text-[9px] text-gray-500 shrink-0">{(file.size / 1024).toFixed(1)} KB</span>
+                       </div>
+                       <button onClick={() => removeFile(i)} className="text-red-600 hover:text-red-800 shrink-0"><Trash2 size={14}/></button>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <label className="flex-1 cursor-pointer bg-white border-2 border-black text-black py-2 font-mono font-bold text-[10px] uppercase tracking-widest text-center hover:bg-black hover:text-white transition-all">
+                   <input type="file" multiple accept=".pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileUpload} />
+                   Import Files
+                </label>
+                <button 
+                  onClick={() => setIsAddingText(true)} 
+                  className="flex-1 bg-white border-2 border-black text-black py-2 font-mono font-bold text-[10px] uppercase tracking-widest text-center hover:bg-black hover:text-white transition-all"
+                >
+                   Add Text
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-wrap sm:flex-nowrap">
-              <label className="flex-1 cursor-pointer bg-white border-2 border-black text-black px-4 py-3 font-mono font-bold text-[10px] uppercase tracking-widest text-center shadow-[4px_4px_0_0_#000] hover:bg-black hover:text-white transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] whitespace-nowrap">
-                 <input type="file" multiple accept=".pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileUpload} />
-                 Import Files
-              </label>
+            {/* Prompt Section */}
+            <div className="mb-6 shrink-0">
+               <label className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-black mb-2"><MessageSquare size={12}/> AI Agent Prompt</label>
+               <textarea 
+                  value={prompt} 
+                  onChange={e => setPrompt(e.target.value)} 
+                  placeholder="You are an expert VC investor. Analyze the pitch based on the following documents..." 
+                  className="w-full bg-white border-2 border-black p-4 font-mono text-sm resize-none focus:outline-none h-24 custom-scrollbar-vertical" 
+               />
+               <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-2">Instructions to guide how the AI Agent responds to the investor.</p>
+            </div>
+
+            <div className="pt-2 border-t-2 border-black shrink-0">
               <button 
-                onClick={() => setIsAddingText(true)} 
-                className="flex-1 cursor-pointer bg-white border-2 border-black text-black px-4 py-3 font-mono font-bold text-[10px] uppercase tracking-widest text-center shadow-[4px_4px_0_0_#000] hover:bg-black hover:text-white transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] whitespace-nowrap"
+                onClick={() => { handleSaveAll(); onCancel(); }} 
+                className="w-full bg-black border-2 border-black text-white px-8 py-4 font-mono font-bold text-xs uppercase tracking-widest text-center shadow-[4px_4px_0_0_#000] hover:bg-white hover:text-black transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000]"
               >
-                 Add Text
-              </button>
-              <button 
-                onClick={() => { onSave(files); onCancel(); }} 
-                className="w-full sm:w-auto flex-1 bg-black border-2 border-black text-white px-8 py-3 font-mono font-bold text-[10px] uppercase tracking-widest text-center shadow-[4px_4px_0_0_#000] hover:bg-white hover:text-black transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000]"
-              >
-                 Done
+                 Done & Save All
               </button>
             </div>
-          </>
+          </div>
         )}
       </motion.div>
     </div>
   );
 };
+
