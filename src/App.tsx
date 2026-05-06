@@ -588,16 +588,15 @@ function App() {
                   Your time and feedback are greatly appreciated. This secure session has been closed.
                 </p>
                 <button 
-                  onClick={() => {
-                     if (!user) {
-                       window.location.href = '/';
-                     } else {
-                       setView('landing');
+                  onClick={async () => {
+                     if (user) {
+                       await handleSignOut();
                      }
+                     window.location.href = '/';
                   }}
                   className="w-full bg-black text-white border-2 border-black p-4 font-mono font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
                 >
-                  Return to Home
+                  Exit Securely
                 </button>
              </div>
            </div>
