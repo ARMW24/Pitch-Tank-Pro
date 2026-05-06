@@ -385,12 +385,11 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     className="w-full h-full flex items-center justify-center relative min-h-0"
                   >
                     {activeSlide.imageUrl ? (
-                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0">
-                        <div className="relative max-w-full max-h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0 min-w-0">
+                        <div className="relative max-w-full max-h-full flex items-center justify-center min-h-0 min-w-0">
                           <img 
                             src={activeSlide.imageUrl} 
                             className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain' : 'object-none'}`}
-                            style={{ maxHeight: '100vh' }}
                             alt={activeSlide.title} 
                             fetchPriority="high"
                             decoding="sync"

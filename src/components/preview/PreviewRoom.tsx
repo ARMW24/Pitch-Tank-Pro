@@ -297,12 +297,11 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     </div>
 
                     {currentSlide.imageUrl ? (
-                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0" onContextMenu={(e) => e.preventDefault()}>
-                        <div className="relative max-w-full max-h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0 min-w-0" onContextMenu={(e) => e.preventDefault()}>
+                        <div className="relative max-w-full max-h-full flex items-center justify-center min-h-0 min-w-0">
                           <img 
                             src={currentSlide.imageUrl} 
                             className="max-w-full max-h-full object-contain pointer-events-none select-none" 
-                            style={{ maxHeight: '100vh' }}
                             alt={currentSlide.title} 
                             fetchPriority="high"
                             decoding="sync"
