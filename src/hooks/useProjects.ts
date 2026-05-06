@@ -146,7 +146,7 @@ export function useProjects(user: User | null) {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .eq('pin_code', pin)
+      .ilike('pin_code', pin)
       .single();
 
     if (error) {
