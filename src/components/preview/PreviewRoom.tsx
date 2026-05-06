@@ -347,6 +347,46 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                       </div>
                     )}
 
+                    {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
+                    {[1, 2, 3].map(num => {
+                      const embedVideo = currentSlide[`embedVideo${num}`];
+                      if (!embedVideo) return null;
+                      
+                      let embedUrl = embedVideo.url;
+                      if (embedUrl.includes('watch?v=')) {
+                        embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                      } else if (embedUrl.includes('youtu.be/')) {
+                        embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
+                      }
+                      
+                      // Add autoplay and mute params
+                      embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1&mute=1&controls=1&loop=1';
+
+                      return (
+                        <div 
+                          key={`embed-${num}`}
+                          className="absolute z-20 shadow-2xl bg-black"
+                          style={{ 
+                            left: `${embedVideo.x}%`, 
+                            top: `${embedVideo.y}%`, 
+                            transform: 'translate(-50%, -50%)',
+                            width: `${embedVideo.w || 35}vw`, 
+                            height: `${(embedVideo.w || 35) * 0.5625}vw`,
+                            maxWidth: '800px', 
+                            maxHeight: '450px' 
+                          }}
+                        >
+                          <iframe
+                            src={embedUrl}
+                            title={`Embedded Video ${num}`}
+                            className="w-full h-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        </div>
+                      );
+                    })}
+
                     {interactiveMode && [1, 2, 3].map(num => {
                       const ytMarker = currentSlide[`youtubeMarker${num}`];
                       const galMarker = currentSlide[`galleryMarker${num}`];

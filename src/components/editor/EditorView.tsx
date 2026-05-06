@@ -396,6 +396,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                         
                         {/* Interactive Markers Rendering */}
                         {[1, 2, 3].map(num => {
+                          const embedVideo = activeSlide[`embedVideo${num}`];
                           const ytMarker = activeSlide[`youtubeMarker${num}`];
                           const galMarker = activeSlide[`galleryMarker${num}`];
                           const noteMarker = activeSlide[`noteMarker${num}`];
@@ -403,6 +404,28 @@ export const EditorView: React.FC<EditorViewProps> = ({
                           
                           return (
                             <React.Fragment key={num}>
+                               {embedVideo && (
+                                  <div className="absolute z-20" style={{ left: `${embedVideo.x}%`, top: `${embedVideo.y}%`, width: 0, height: 0 }}>
+                                     <motion.div key={`embed-${embedVideo.x}-${embedVideo.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `embedVideo${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
+                                        <div 
+                                          className="absolute -translate-x-1/2 -translate-y-1/2 bg-black/80 border-2 border-dashed border-white shadow-2xl flex items-center justify-center group-hover/marker:border-red-500 transition-colors"
+                                          style={{ width: `${embedVideo.w || 35}vw`, height: `${(embedVideo.w || 35) * 0.5625}vw`, maxWidth: '800px', maxHeight: '450px' }}
+                                        >
+                                          <div className="text-white flex flex-col items-center opacity-50 group-hover/marker:opacity-100 transition-opacity">
+                                            <Youtube size={32} className="text-red-500 mb-2" />
+                                            <span className="text-[10px] font-mono uppercase font-bold tracking-widest text-center px-4">Autoplay Video {num}<br/>(Drag to move)</span>
+                                          </div>
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); updateActiveSlide(`embedVideo${num}`, null); }}
+                                            className="absolute -top-3 -right-3 bg-red-600 text-white p-1.5 rounded-full border-2 border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
+                                          >
+                                            <X size={12} />
+                                          </button>
+                                        </div>
+                                     </motion.div>
+                                  </div>
+                               )}
+                               
                                {ytMarker && (
                                   <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
                                      <motion.div key={`${ytMarker.x}-${ytMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">

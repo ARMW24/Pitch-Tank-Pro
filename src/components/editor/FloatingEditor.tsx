@@ -195,10 +195,52 @@ export const FloatingEditor: React.FC<FloatingEditorProps> = ({
         {activeTab === 'interactive' && (
           <div className="space-y-8">
             <div>
-               <h5 className="text-[10px] font-mono font-bold uppercase text-black tracking-widest bg-white inline-block px-2 py-1 border-2 border-black mb-4">Video Links</h5>
+               <h5 className="text-[10px] font-mono font-bold uppercase text-black tracking-widest bg-white inline-block px-2 py-1 border-2 border-black mb-4 flex items-center gap-2"><Youtube size={14}/> Autoplay Video Embeds</h5>
+               <p className="text-[9px] font-mono mb-4">Videos play automatically without sound when slide loads. Resizable fixed box.</p>
+               <div className="space-y-6">
+                 {[1, 2, 3].map(num => (
+                   <div key={`embed-${num}`} className="space-y-3 p-3 border-2 border-black bg-white">
+                      <label className="text-[9px] font-mono uppercase font-bold text-black">Embed Video {num}</label>
+                      <input 
+                        className="w-full bg-gray-50 border border-black px-3 py-2 text-xs font-mono rounded-none focus:outline-none" 
+                        value={slide[`embedVideo${num}`]?.url || ''} 
+                        onFocus={captureHistory}
+                        onChange={e => onUpdate(`embedVideo${num}`, e.target.value ? { 
+                          url: e.target.value, 
+                          x: slide[`embedVideo${num}`]?.x ?? 50, 
+                          y: slide[`embedVideo${num}`]?.y ?? 50,
+                          w: slide[`embedVideo${num}`]?.w ?? 35
+                        } : null)} 
+                        placeholder={`Paste YouTube Link...`} 
+                      />
+                      {slide[`embedVideo${num}`]?.url && (
+                        <div className="flex items-center gap-3">
+                          <span className="text-[9px] font-mono font-bold uppercase shrink-0">Size:</span>
+                          <input 
+                            type="range" min="10" max="90" 
+                            value={slide[`embedVideo${num}`]?.w || 35} 
+                            onChange={e => {
+                              onUpdate(`embedVideo${num}`, {
+                                ...slide[`embedVideo${num}`],
+                                w: parseInt(e.target.value)
+                              });
+                            }}
+                            className="flex-1 accent-black h-1 bg-gray-200 rounded-lg cursor-pointer"
+                          />
+                          <span className="text-[9px] font-mono font-bold shrink-0">{slide[`embedVideo${num}`]?.w || 35}%</span>
+                        </div>
+                      )}
+                   </div>
+                 ))}
+               </div>
+            </div>
+
+            <div className="border-t-2 border-black pt-6">
+               <h5 className="text-[10px] font-mono font-bold uppercase text-black tracking-widest bg-white inline-block px-2 py-1 border-2 border-black mb-4">Interactive Video Buttons</h5>
+               <p className="text-[9px] font-mono mb-4">Shows a small play button that opens a popup. Only visible in Interactive mode.</p>
                <div className="space-y-4">
                  {[1, 2, 3].map(num => (
-                   <div key={num} className="space-y-2">
+                   <div key={`yt-${num}`} className="space-y-2">
                       <label className="text-[9px] font-mono uppercase font-bold text-gray-500 flex items-center gap-2"><Youtube size={12}/> YouTube Marker {num}</label>
                       <input 
                         className="w-full bg-white border-2 border-black px-3 py-2 text-xs font-mono rounded-none focus:outline-none" 
