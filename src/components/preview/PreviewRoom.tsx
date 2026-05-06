@@ -153,7 +153,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   };
 
   return (
-    <div className={`flex-1 bg-[#F4F4F1] text-black flex flex-col relative h-full overflow-hidden`}>
+    <div className={`flex-1 bg-[#F4F4F1] text-black flex flex-col relative h-full overflow-hidden min-h-0 min-w-0`}>
       {!isFrameless && <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>}
       
       {!isFrameless && (

@@ -199,7 +199,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
   };
 
   return (
-    <div className="h-full w-full flex-1 flex relative overflow-hidden group/sidebar bg-[#F4F4F1]">
+    <div className="h-full w-full flex-1 flex relative overflow-hidden group/sidebar bg-[#F4F4F1] min-h-0 min-w-0">
       <div className={`shrink-0 z-[100] h-full bg-[#F4F4F1] border-r-2 border-black relative transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
