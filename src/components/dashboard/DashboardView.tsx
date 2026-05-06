@@ -87,7 +87,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h1 className="text-5xl lg:text-7xl font-sans font-black tracking-tighter leading-none">INVESTMENT<br/>ROOMS</h1>
           </div>
           <div className="flex gap-3">
-             <button onClick={onNewProject} className="bg-black text-white px-6 py-3 font-mono font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all shadow-[4px_4px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1">New Room</button>
+             <button onClick={() => window.dispatchEvent(new CustomEvent('nav-tracking'))} className="bg-black text-white px-6 py-3 font-mono font-bold text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-all shadow-[4px_4px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1">Tracking Log</button>
+             <button onClick={onNewProject} className="bg-white text-black px-6 py-3 font-mono font-bold text-[10px] uppercase tracking-widest border-2 border-black transition-all shadow-[4px_4px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1">New Room</button>
              <button onClick={onLogout} className="border-2 border-black px-6 py-3 font-mono font-bold text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Logout</button>
           </div>
         </header>

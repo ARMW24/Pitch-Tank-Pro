@@ -46,7 +46,10 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ projects }) => {
   return (
     <div className="flex-1 overflow-auto bg-[#F4F4F1] p-6 lg:p-12 custom-scrollbar-vertical">
        <div className="max-w-6xl mx-auto border-2 border-black bg-white p-8 md:p-12 shadow-[12px_12px_0_0_#000]">
-          <h1 className="text-3xl lg:text-4xl font-serif font-black italic uppercase text-black mb-8 border-b-2 border-black pb-4">VC Tracking Log</h1>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-2 border-black pb-4 gap-4">
+             <h1 className="text-3xl lg:text-4xl font-serif font-black italic uppercase text-black">VC Tracking Log</h1>
+             <button onClick={() => window.dispatchEvent(new CustomEvent('nav-dashboard'))} className="bg-white text-black border-2 border-black px-4 py-2 font-mono text-[10px] uppercase tracking-widest font-bold hover:bg-black hover:text-white transition-all w-fit">Back to Dashboard</button>
+          </div>
              {loading ? (
                 <div className="text-center font-mono py-12 uppercase text-xs tracking-widest">Loading metrics...</div>
              ) : sessions.length === 0 ? (

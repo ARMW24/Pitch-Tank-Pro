@@ -157,6 +157,17 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleNavTracking = () => setView('tracking');
+    const handleNavDashboard = () => setView('dashboard');
+    window.addEventListener('nav-tracking', handleNavTracking);
+    window.addEventListener('nav-dashboard', handleNavDashboard);
+    return () => {
+      window.removeEventListener('nav-tracking', handleNavTracking);
+      window.removeEventListener('nav-dashboard', handleNavDashboard);
+    };
+  }, []);
+
   const handleSignOut = async () => {
     await signOut();
     setView('landing');
@@ -185,7 +196,7 @@ function App() {
            return;
         }
         
-        const sessId = crypto.randomUUID();
+        const sessId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).substring(2));
         // Record session asynchronously
         supabase.from('sessions').insert({
           id: sessId,

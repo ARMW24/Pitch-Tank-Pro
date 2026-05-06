@@ -269,6 +269,10 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 </div>
               )}
             </button>
+            <button onClick={() => setView('tracking')} className="flex items-center gap-4 px-5 py-3 hover:bg-gray-100 transition-colors w-full text-left group">
+              <Zap size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
+              {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">VC Tracking Log</span>}
+            </button>
             <button onClick={() => setModal({ type: 'aiKnowledge' })} className="flex items-center gap-4 px-5 py-3 hover:bg-gray-100 transition-colors w-full text-left group">
               <Cpu size={18} className="shrink-0 group-hover:scale-110 transition-transform" />
               {isSidebarOpen && <span className="text-[10px] font-mono font-bold uppercase tracking-widest leading-none mt-1">AI Knowledge</span>}
