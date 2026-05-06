@@ -81,18 +81,24 @@ import { generateSecurePin, appendFixedSlides } from './utils/helpers';
 import { supabase } from './lib/supabase';
 
 function App() {
-  const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  // Bypass auth for local testing
+  const user = { id: 'local-tester', email: 'test@pitchtank.local' } as any;
+  const authLoading = false;
+  const signInWithGoogle = async () => {};
+  const signOut = async () => {};
+  
   const { 
     projects, 
     loading: projectsLoading, 
     createProject, 
     updateProject, 
-    deleteProject, 
+    deleteProject,
     findProjectByPin,
+    refresh: refreshProjects,
     getProject
   } = useProjects(user);
 
-  const [view, setView] = useState<'landing' | 'dashboard' | 'editor' | 'tracking' | 'preview'>('landing');
+  const [view, setView] = useState<'landing' | 'login' | 'dashboard' | 'editor' | 'tracking' | 'preview'>('dashboard');
   const [activePid, setActivePid] = useState<string | null>(null);
   const [activeSid, setActiveSid] = useState<string | number | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
