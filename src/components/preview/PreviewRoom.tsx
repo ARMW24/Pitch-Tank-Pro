@@ -297,19 +297,130 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     </div>
 
                     {currentSlide.imageUrl ? (
-                      <div className="w-full h-full relative z-10 min-h-0" onContextMenu={(e) => e.preventDefault()}>
-                        <img 
-                          src={currentSlide.imageUrl} 
-                          className="absolute inset-0 max-w-full max-h-full m-auto object-contain pointer-events-none select-none" 
-                          alt={currentSlide.title} 
-                          fetchPriority="high"
-                          decoding="sync"
-                          loading="eager"
-                          onDragStart={(e) => e.preventDefault()}
-                        />
+                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0" onContextMenu={(e) => e.preventDefault()}>
+                        <div className="relative max-w-full max-h-full flex items-center justify-center">
+                          <img 
+                            src={currentSlide.imageUrl} 
+                            className="max-w-full max-h-full object-contain pointer-events-none select-none" 
+                            style={{ maxHeight: '100vh' }}
+                            alt={currentSlide.title} 
+                            fetchPriority="high"
+                            decoding="sync"
+                            loading="eager"
+                            onDragStart={(e) => e.preventDefault()}
+                          />
+                          
+                          {/* Interactive Markers Rendering */}
+                          {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
+                          {[1, 2, 3].map(num => {
+                            const embedVideo = currentSlide[`embedVideo${num}`];
+                            if (!embedVideo) return null;
+                            
+                            let embedUrl = embedVideo.url;
+                            if (embedUrl.includes('watch?v=')) {
+                              embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                            } else if (embedUrl.includes('youtu.be/')) {
+                              embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
+                            }
+                            
+                            // Add autoplay and mute params
+                            embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1&mute=1&controls=1&loop=1';
+
+                            return (
+                              <div 
+                                key={`embed-${num}`}
+                                className="absolute z-20 shadow-2xl bg-black"
+                                style={{ 
+                                  left: `${embedVideo.x}%`, 
+                                  top: `${embedVideo.y}%`, 
+                                  transform: 'translate(-50%, -50%)',
+                                  width: `${embedVideo.w || 35}%`, 
+                                  aspectRatio: '16/9'
+                                }}
+                              >
+                                <iframe
+                                  src={embedUrl}
+                                  title={`Embedded Video ${num}`}
+                                  className="w-full h-full border-0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                ></iframe>
+                              </div>
+                            );
+                          })}
+
+                          {interactiveMode && [1, 2, 3].map(num => {
+                            const ytMarker = currentSlide[`youtubeMarker${num}`];
+                            const galMarker = currentSlide[`galleryMarker${num}`];
+                            const noteMarker = currentSlide[`noteMarker${num}`];
+                            const docMarker = currentSlide[`docMarker${num}`];
+                            
+                            return (
+                              <React.Fragment key={num}>
+                                 {ytMarker && (
+                                    <button 
+                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
+                                      style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                      onClick={() => {
+                                        let embedUrl = ytMarker.url;
+                                        if (embedUrl.includes('watch?v=')) {
+                                          embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                                        } else if (embedUrl.includes('youtu.be/')) {
+                                          embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
+                                        }
+                                        setPlayingVideo(embedUrl);
+                                      }}
+                                    >
+                                      <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                        <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Play {num > 1 ? num : ''}</span>
+                                      </div>
+                                    </button>
+                                 )}
+                                 
+                                 {galMarker && galMarker.images && galMarker.images.length > 0 && (
+                                    <button 
+                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
+                                      style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                      onClick={() => setActiveGallery({ images: galMarker.images, index: 0 })}
+                                    >
+                                      <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                        <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
+                                      </div>
+                                    </button>
+                                 )}
+                                 
+                                 {noteMarker && noteMarker.text && (
+                                    <button 
+                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
+                                      style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                      onClick={() => setActiveNote({ text: noteMarker.text, title: `Note ${num}` })}
+                                    >
+                                      <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                        <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Read</span>
+                                      </div>
+                                    </button>
+                                 )}
+
+                                 {docMarker && docMarker.url && (
+                                    <a 
+                                      href={docMarker.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
+                                      style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                    >
+                                      <div className="bg-green-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                        <ExternalLink size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Open</span>
+                                      </div>
+                                    </a>
+                                 )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </div>
                       </div>
                     ) : (
-                      <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>
+                      <div className="w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black">
                         <h1 className="text-[6vw] font-serif font-black uppercase mb-6 tracking-tighter italic leading-none">{currentSlide.title}</h1>
                         <div className={`w-24 h-1 mb-8 mx-auto bg-black`}></div>
                         {currentSlide.isFixed ? (
@@ -346,116 +457,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                         )}
                       </div>
                     )}
-
-                    {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
-                    {[1, 2, 3].map(num => {
-                      const embedVideo = currentSlide[`embedVideo${num}`];
-                      if (!embedVideo) return null;
-                      
-                      let embedUrl = embedVideo.url;
-                      if (embedUrl.includes('watch?v=')) {
-                        embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-                      } else if (embedUrl.includes('youtu.be/')) {
-                        embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
-                      }
-                      
-                      // Add autoplay and mute params
-                      embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1&mute=1&controls=1&loop=1';
-
-                      return (
-                        <div 
-                          key={`embed-${num}`}
-                          className="absolute z-20 shadow-2xl bg-black"
-                          style={{ 
-                            left: `${embedVideo.x}%`, 
-                            top: `${embedVideo.y}%`, 
-                            transform: 'translate(-50%, -50%)',
-                            width: `${embedVideo.w || 35}vw`, 
-                            height: `${(embedVideo.w || 35) * 0.5625}vw`,
-                            maxWidth: '800px', 
-                            maxHeight: '450px' 
-                          }}
-                        >
-                          <iframe
-                            src={embedUrl}
-                            title={`Embedded Video ${num}`}
-                            className="w-full h-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          ></iframe>
-                        </div>
-                      );
-                    })}
-
-                    {interactiveMode && [1, 2, 3].map(num => {
-                      const ytMarker = currentSlide[`youtubeMarker${num}`];
-                      const galMarker = currentSlide[`galleryMarker${num}`];
-                      const noteMarker = currentSlide[`noteMarker${num}`];
-                      const docMarker = currentSlide[`docMarker${num}`];
-                      
-                      return (
-                        <React.Fragment key={num}>
-                           {ytMarker && (
-                              <button 
-                                className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                onClick={() => {
-                                  let embedUrl = ytMarker.url;
-                                  if (embedUrl.includes('watch?v=')) {
-                                    embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-                                  } else if (embedUrl.includes('youtu.be/')) {
-                                    embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
-                                  }
-                                  setPlayingVideo(embedUrl);
-                                }}
-                              >
-                                <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                  <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Play {num > 1 ? num : ''}</span>
-                                </div>
-                              </button>
-                           )}
-                           
-                           {galMarker && galMarker.images && galMarker.images.length > 0 && (
-                              <button 
-                                className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                onClick={() => setActiveGallery({ images: galMarker.images, index: 0 })}
-                              >
-                                <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                  <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
-                                </div>
-                              </button>
-                           )}
-                           
-                           {noteMarker && noteMarker.text && (
-                              <button 
-                                className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                onClick={() => setActiveNote({ text: noteMarker.text, title: `Note ${num}` })}
-                              >
-                                <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                  <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Read</span>
-                                </div>
-                              </button>
-                           )}
-
-                           {docMarker && docMarker.url && (
-                              <button 
-                                className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                onClick={() => setActiveDoc({ url: docMarker.url, name: docMarker.name })}
-                              >
-                                <div className="bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                  <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
-                                </div>
-                              </button>
-                           )}
-                        </React.Fragment>
-                      );
-                    })}
                   </div>
-
-
                 </motion.div>
               </AnimatePresence>
               

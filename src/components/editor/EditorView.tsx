@@ -385,16 +385,19 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     className="w-full h-full flex items-center justify-center relative min-h-0"
                   >
                     {activeSlide.imageUrl ? (
-                      <div className="w-full h-full relative z-10 min-h-0">
-                        <img 
-                          src={activeSlide.imageUrl} 
-                          className={`absolute inset-0 max-w-full max-h-full transition-all m-auto ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`} 
-                          alt={activeSlide.title} 
-                          fetchPriority="high"
-                          decoding="sync"
-                        />
-                        
-                        {/* Interactive Markers Rendering */}
+                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0">
+                        <div className="relative max-w-full max-h-full flex items-center justify-center">
+                          <img 
+                            src={activeSlide.imageUrl} 
+                            className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain' : 'object-none'}`}
+                            style={{ maxHeight: '100vh' }}
+                            alt={activeSlide.title} 
+                            fetchPriority="high"
+                            decoding="sync"
+                            onDragStart={(e) => e.preventDefault()}
+                          />
+                          
+                          {/* Interactive Markers Rendering */}
                         {[1, 2, 3].map(num => {
                           const embedVideo = activeSlide[`embedVideo${num}`];
                           const ytMarker = activeSlide[`youtubeMarker${num}`];
@@ -409,7 +412,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                      <motion.div key={`embed-${embedVideo.x}-${embedVideo.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `embedVideo${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
                                         <div 
                                           className="absolute -translate-x-1/2 -translate-y-1/2 bg-black/80 border-2 border-dashed border-white shadow-2xl flex items-center justify-center group-hover/marker:border-red-500 transition-colors"
-                                          style={{ width: `${embedVideo.w || 35}vw`, height: `${(embedVideo.w || 35) * 0.5625}vw`, maxWidth: '800px', maxHeight: '450px' }}
+                                          style={{ width: `${embedVideo.w || 35}%`, aspectRatio: '16/9' }}
                                         >
                                           <div className="text-white flex flex-col items-center opacity-50 group-hover/marker:opacity-100 transition-opacity">
                                             <Youtube size={32} className="text-red-500 mb-2" />
@@ -489,6 +492,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                             </React.Fragment>
                           );
                         })}
+                        </div>
                       </div>
                     ) : activeSlide.isFixed ? (
                       <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>
