@@ -377,8 +377,6 @@ function App() {
                  if (m.type === 'aiKnowledge') setIsAIKnowledgeModalOpen(true);
                }}
                updateActiveSlide={(field, val) => {
-                 if (historyIndex === -1) captureHistory(activeProject.slides); // Initial state
-                 captureHistory(activeProject.slides);
                  const newSlides = activeProject.slides.map(s => 
                    s.id === (activeSid || activeProject.slides[0]?.id) ? { ...s, [field]: val } : s
                  );
@@ -418,7 +416,7 @@ function App() {
                }}
                captureHistory={() => {
                  if (historyIndex === -1) captureHistory(activeProject.slides);
-                 captureHistory(activeProject.slides);
+                 else captureHistory(activeProject.slides);
                }}
                handleUndo={handleUndo}
                handleRedo={handleRedo}

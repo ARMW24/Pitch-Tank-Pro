@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
@@ -80,6 +80,34 @@ export function useProjects(user: User | null) {
     return newProject;
   };
 
+  const updateTimeout = useRef<any>(null);
+  const pendingUpdates = useRef<any>({});
+  const pendingId = useRef<string | null>(null);
+
+  const flushUpdates = async () => {
+    if (!pendingId.current || Object.keys(pendingUpdates.current).length === 0) return;
+    const id = pendingId.current;
+    const updates = pendingUpdates.current;
+    pendingUpdates.current = {};
+    pendingId.current = null;
+
+    const supabaseUpdates: any = {};
+    if (updates.name !== undefined) supabaseUpdates.name = updates.name;
+    if (updates.pinCode !== undefined) supabaseUpdates.pin_code = updates.pinCode;
+    if (updates.aiKnowledgeFiles !== undefined) supabaseUpdates.ai_knowledge_files = updates.aiKnowledgeFiles;
+    if (updates.slides !== undefined) supabaseUpdates.slides = updates.slides;
+
+    const { error } = await supabase
+      .from('projects')
+      .update(supabaseUpdates)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating project:', error);
+      fetchProjects();
+    }
+  };
+
   const updateProject = async (id: string, updates: any) => {
     // Optimistic update with functional state to prevent race conditions
     setProjects(prev => prev.map(p => {
@@ -89,31 +117,17 @@ export function useProjects(user: User | null) {
       return p;
     }));
 
-    // Map camelCase to snake_case for Supabase
-    const supabaseUpdates: any = {};
-    if (updates.name !== undefined) supabaseUpdates.name = updates.name;
-    if (updates.pinCode !== undefined) supabaseUpdates.pin_code = updates.pinCode;
-    if (updates.aiKnowledgeFiles !== undefined) supabaseUpdates.ai_knowledge_files = updates.aiKnowledgeFiles;
-    if (updates.slides !== undefined) supabaseUpdates.slides = updates.slides;
-
-    const { data, error } = await supabase
-      .from('projects')
-      .update(supabaseUpdates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating project:', error);
-      // Rollback optimistic update
-      fetchProjects();
-      return null;
+    if (pendingId.current && pendingId.current !== id) {
+      await flushUpdates();
     }
+    
+    pendingId.current = id;
+    pendingUpdates.current = { ...pendingUpdates.current, ...updates };
 
-    const updatedProject = transformProject(data);
-    // Do NOT overwrite local state with server response to prevent typing cursor glitch!
-    // The optimistic update is enough since it's the exact same data.
-    return updatedProject;
+    if (updateTimeout.current) clearTimeout(updateTimeout.current);
+    updateTimeout.current = setTimeout(flushUpdates, 1000);
+
+    return true;
   };
 
   const deleteProject = async (id: string) => {
