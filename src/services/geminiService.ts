@@ -32,33 +32,49 @@ Knowledge Base (Your internal docs):
 ${contextFiles.filter(f => f.type !== 'settings').map((f, i) => `File: ${f.name}\n${f.content || 'Content not extracted'}`).join('\n\n')}
 
 Current Deck Context:
-${currentSlideContent || 'No specific slide content visible.'}`;
+${currentSlideContent || 'No specific slide content visible.'}\`;
 
   const chatMessages = messages.map(m => ({
      role: m.role === 'ai' ? 'model' : 'user',
      parts: [{ text: m.text }]
   }));
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: chatMessages,
-      config: {
-        systemInstruction,
-        temperature: 0.7,
+  const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-002"];
+  let finalResponse = "";
+  let lastErrorMsg = "";
+
+  for (const modelName of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: chatMessages,
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+        }
+      });
+      
+      if (response.text) {
+        finalResponse = response.text;
+        break;
       }
-    });
-    
-    if (response.text) return response.text;
-    throw new Error("Empty response received from AI");
-  } catch (err: any) {
-    console.error(`Model failed:`, err.message);
-    if (err.message.includes("429") || err.message.includes("QUOTA")) {
-      return "The AI consultant is currently occupied with other investors. Please try again in 1-2 minutes.";
+    } catch (err: any) {
+      console.warn(`Model ${modelName} failed:`, err.message);
+      lastErrorMsg = err.message;
+      
+      if (err.message.includes("API key not valid")) {
+        return "Invalid API Key provided. Please update your API Key in the AI Knowledge Base settings.";
+      }
+      
+      // If it's a 404 (not found) or 503 (overloaded), continue to the next fallback model instantly
+      continue;
     }
-    if (err.message.includes("API key not valid")) {
-      return "Invalid API Key provided. Please update your API Key in the AI Knowledge Base settings.";
-    }
-    throw err;
   }
+
+  if (finalResponse) return finalResponse;
+
+  if (lastErrorMsg.includes("429") || lastErrorMsg.includes("QUOTA")) {
+    return "The AI consultant is currently occupied with other investors. Please try again in 1-2 minutes.";
+  }
+  return "I'm experiencing a temporary technical glitch in my knowledge engine. Let me get back to you shortly. (Error: " + (lastErrorMsg || "Unknown") + ")";
 };
