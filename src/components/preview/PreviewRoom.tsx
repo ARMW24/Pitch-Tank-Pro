@@ -142,15 +142,37 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
     }
   };
 
-  const saveFeedback = async () => {
+  const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const saveFeedback = async (text: string) => {
     if (visitorSessionId) {
       try {
-        await supabase.from('sessions').update({ has_feedback: true }).eq('id', visitorSessionId);
+        await supabase.from('sessions').update({ 
+          has_feedback: true,
+          feedback: text,
+          last_ping: new Date().toISOString()
+        }).eq('id', visitorSessionId);
       } catch (e) {
         console.error("Failed to save feedback status", e);
       }
     }
   };
+
+  useEffect(() => {
+    if (!visitorSessionId) return;
+    
+    let timeSpent = 0;
+    const interval = setInterval(() => {
+      timeSpent += 10;
+      supabase.from('sessions').update({
+        time_spent: timeSpent,
+        last_ping: new Date().toISOString()
+      }).eq('id', visitorSessionId).then();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [visitorSessionId]);
+
 
   return (
     <div className={`flex-1 bg-[#F4F4F1] text-black flex flex-col relative h-full overflow-hidden min-h-0 min-w-0`}>
@@ -316,10 +338,17 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                                if (onUpdateSlide) {
                                   onUpdateSlide(currentSlide.id, 'content', e.target.value);
                                }
+                               if (currentSlide.id === 'vc-feedback' && visitorSessionId) {
+                                  if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+                                  feedbackTimeoutRef.current = setTimeout(() => {
+                                     saveFeedback(e.target.value);
+                                  }, 1000);
+                               }
                              }}
                              onBlur={(e) => {
                                 if (currentSlide.id === 'vc-feedback' && e.target.value.trim().length > 0) {
-                                   saveFeedback();
+                                   if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+                                   saveFeedback(e.target.value);
                                 }
                              }}
                              placeholder={currentSlide.id === 'founder-note' ? "Founder notes are typed in the editor..." : "Type VC feedback here..."}

@@ -192,7 +192,10 @@ function App() {
           project_id: project.id,
           name: visitorName || 'Anonymous VC',
           email: visitorEmail || 'no-email@vc.com',
-          started_at: new Date().toISOString()
+          started_at: new Date().toISOString(),
+          last_ping: new Date().toISOString(),
+          time_spent: 0,
+          has_feedback: false
         }).then(() => console.log('Session recorded'), console.error);
         
         setVisitorSessionId(sessId);

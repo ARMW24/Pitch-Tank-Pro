@@ -77,7 +77,14 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ projects }) => {
                                <td className="py-4 pr-6 text-xs">{new Date(s.started_at).toLocaleString()}</td>
                                <td className="py-4 pr-6 text-xs">{Math.floor((s.time_spent || 0) / 60)} min {Math.floor((s.time_spent || 0) % 60)} sec</td>
                                <td className="py-4">
-                                  {s.has_feedback ? <span className="bg-black text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest">Yes</span> : <span className="text-gray-400 px-3 py-1.5 text-[10px] uppercase border border-gray-200">No</span>}
+                                  {s.has_feedback ? (
+                                    <div className="flex flex-col gap-2 max-w-xs">
+                                      <span className="bg-black text-white px-2 py-1 text-[9px] font-bold uppercase tracking-widest w-fit">Feedback Received</span>
+                                      <p className="text-xs text-gray-600 font-sans italic border-l-2 border-black pl-2 whitespace-normal break-words">{s.feedback}</p>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400 px-3 py-1.5 text-[10px] uppercase border border-gray-200">No Feedback</span>
+                                  )}
                                </td>
                             </tr>
                          ))}
