@@ -65,6 +65,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
   const [showNarrative, setShowNarrative] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const narrativeRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -183,6 +184,29 @@ export const EditorView: React.FC<EditorViewProps> = ({
       if (!confirmReplace) return;
     }
     audioInputRef.current?.click();
+  };
+
+  const onAudioUploadChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setIsUploadingAudio(true);
+    const path = `users/${user.id}/audio/${Date.now()}_${file.name}`;
+    try {
+      const { data, error } = await supabase.storage.from('assets').upload(path, file);
+      if (error) {
+        console.error('Audio Upload Error:', error);
+        alert('Failed to upload audio.');
+      } else if (data) {
+        const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
+        updateActiveSlide('audioUrl', publicUrl);
+      }
+    } catch (error) {
+       console.error(error);
+       alert('Failed to upload audio.');
+    } finally {
+      setIsUploadingAudio(false);
+      if (e.target) e.target.value = '';
+    }
   };
 
   const handleMarkerDragEnd = (e: any, info: any, markerKey: string) => {
@@ -326,10 +350,10 @@ export const EditorView: React.FC<EditorViewProps> = ({
                         >
                           <Mic size={14} /> {isRecording ? 'REC...' : 'REC'}
                         </button>
-                        <button onClick={handleUploadClick} className="bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all">
-                           <Upload size={14} />
+                        <button onClick={handleUploadClick} disabled={isUploadingAudio} className={`bg-white text-black p-1.5 border-2 border-black hover:bg-black hover:text-white transition-all ${isUploadingAudio ? 'opacity-50 cursor-wait' : ''}`}>
+                           {isUploadingAudio ? <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent animate-spin rounded-full"></div> : <Upload size={14} />}
                         </button>
-                        <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleAudioUpload} />
+                        <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={onAudioUploadChange} />
                      </div>
                     <div className="flex items-center gap-4">
                       <button onClick={() => setFitToFrame(!fitToFrame)} className="text-[10px] font-mono uppercase font-black text-black/40 hover:text-black transition-colors">

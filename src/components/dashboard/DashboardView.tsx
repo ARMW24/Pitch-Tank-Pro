@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Layers, Copy, Trash2, LayoutDashboard, Search, LogOut } from 'lucide-react';
+import { Plus, Layers, Copy, Trash2, LayoutDashboard, Search, LogOut, Edit3, Download } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { User } from '@supabase/supabase-js';
 
@@ -10,6 +10,7 @@ interface DashboardViewProps {
   onNewProject: () => void;
   onCopyProject: (project: Project) => void;
   onDeleteProject: (projectId: string) => void;
+  onRenameProject: (projectId: string, newName: string) => void;
   onOpenProject: (projectId: string) => void;
   onPreviewProject: (projectId: string) => void;
   findProjectByPin: (pin: string) => Promise<string | null>;
@@ -23,6 +24,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNewProject,
   onCopyProject,
   onDeleteProject,
+  onRenameProject,
   onOpenProject,
   onPreviewProject,
   findProjectByPin,
@@ -30,6 +32,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [homeError, setHomeError] = useState("");
   const [searching, setSearching] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+
+  const handleExport = (project: Project) => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project, null, 2));
+    const downloadNode = document.createElement('a');
+    downloadNode.setAttribute("href", dataStr);
+    downloadNode.setAttribute("download", `${project.name}.json`);
+    document.body.appendChild(downloadNode);
+    downloadNode.click();
+    downloadNode.remove();
+  };
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,16 +116,59 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className="absolute top-0 right-0 flex border-b-2 border-l-2 border-black bg-white group-hover:bg-[#F4F4F1] transition-colors">
                     <button onClick={(e) => {
                       e.stopPropagation();
+                      handleExport(project);
+                    }} className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors" title="Export (.json)"><Download size={16} /></button>
+                    <button onClick={(e) => {
+                      e.stopPropagation();
                       onCopyProject(project);
-                    }} className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors"><Copy size={16} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); onDeleteProject(project.id); }} className="p-3 text-black hover:bg-black hover:text-white transition-colors"><Trash2 size={16} /></button>
+                    }} className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors" title="Duplicate"><Copy size={16} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); onDeleteProject(project.id); }} className="p-3 text-black hover:bg-black hover:text-white transition-colors" title="Delete"><Trash2 size={16} /></button>
                 </div>
                 
                 <div className="pt-6">
                     <div className="w-16 h-16 bg-black text-white flex items-center justify-center mb-6 rounded-full overflow-hidden border-2 border-black bg-cover bg-center" style={project.slides?.[0]?.imageUrl ? { backgroundImage: `url(${project.slides[0].imageUrl})` } : {}}>
                         {!project.slides?.[0]?.imageUrl && <Layers size={24} />}
                     </div>
-                    <h3 className="text-3xl font-serif font-black text-black italic tracking-tighter leading-tight mb-2 truncate">{project.name}</h3>
+                    {editingProjectId === project.id ? (
+                      <div className="mb-2 flex items-center gap-2">
+                        <input
+                          autoFocus
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onBlur={() => {
+                            if (editName.trim() && editName.trim() !== project.name) {
+                              onRenameProject(project.id, editName.trim());
+                            }
+                            setEditingProjectId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              if (editName.trim() && editName.trim() !== project.name) {
+                                onRenameProject(project.id, editName.trim());
+                              }
+                              setEditingProjectId(null);
+                            }
+                            if (e.key === 'Escape') setEditingProjectId(null);
+                          }}
+                          className="w-full text-3xl font-serif font-black text-black italic tracking-tighter leading-tight bg-white border-b-2 border-black outline-none px-1"
+                        />
+                      </div>
+                    ) : (
+                      <div className="mb-2 group/title flex items-center gap-2 overflow-hidden pr-2">
+                        <h3 className="text-3xl font-serif font-black text-black italic tracking-tighter leading-tight truncate">{project.name}</h3>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditName(project.name);
+                            setEditingProjectId(project.id);
+                          }}
+                          className="opacity-0 group-hover/title:opacity-100 p-1 hover:bg-black hover:text-white transition-colors shrink-0"
+                          title="Rename Folder"
+                        >
+                          <Edit3 size={16} />
+                        </button>
+                      </div>
+                    )}
                     <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">{(project.slides || []).length} INTERACTIVE SLIDES</p>
                 </div>
                 

@@ -355,6 +355,7 @@ function App() {
                   setIsDeleteModalOpen(true);
                 }
               }}
+              onRenameProject={(pid, newName) => updateProject(pid, { name: newName })}
               onOpenProject={(pid) => { setActivePid(pid); setView('editor'); }}
               onPreviewProject={(pid) => { setActivePid(pid); setView('preview'); }}
               findProjectByPin={findProjectByPin}
@@ -487,25 +488,6 @@ function App() {
                  if (e.target) e.target.value = '';
                }}
                user={user}
-                               handleAudioUpload={async (e: React.ChangeEvent<HTMLInputElement>) => {
-                  const file = e.target.files?.[0];
-                  if (!file || !user) return;
-                  const path = `users/${user.id}/audio/${Date.now()}_${file.name}`;
-                  const { data, error } = await supabase.storage.from('assets').upload(path, file);
-                  if (error) {
-                    console.error('Audio Upload Error:', error);
-                    alert('Failed to upload audio.');
-                    return;
-                  }
-                  if (data) {
-                    const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(data.path);
-                    const newSlides = activeProject.slides.map(s => 
-                       s.id === activeSid ? { ...s, audioUrl: publicUrl } : s
-                    );
-                    updateProject(activeProject.id, { slides: newSlides });
-                  }
-                  if (e.target) e.target.value = '';
-                }}
                audioInputRef={audioInputRef}
                onLogout={handleSignOut}
             />
