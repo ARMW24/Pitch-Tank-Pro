@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 export interface Project {
@@ -12,87 +13,148 @@ export interface Project {
   updatedAt: string;
 }
 
+const transformProject = (data: any): Project => ({
+  id: data.id,
+  name: data.name,
+  userId: data.user_id,
+  pinCode: data.pin_code,
+  aiKnowledgeFiles: data.ai_knowledge_files || [],
+  slides: data.slides || [],
+  createdAt: data.created_at,
+  updatedAt: data.updated_at,
+});
+
 export function useProjects(user: User | null) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProjects = async () => {
+    if (!user) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    const saved = localStorage.getItem('pitch_tank_projects');
-    if (saved) {
-      try {
-        setProjects(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse local projects', e);
-      }
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching projects:', error);
+    } else {
+      setProjects((data || []).map(transformProject));
     }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchProjects();
-  }, []);
-
-  const saveProjects = (newProjects: Project[]) => {
-    setProjects(newProjects);
-    localStorage.setItem('pitch_tank_projects', JSON.stringify(newProjects));
-  };
+  }, [user]);
 
   const createProject = async (name: string, pinCode: string, initialSlides: any[]) => {
-    const newProject: Project = {
-      id: crypto.randomUUID(),
-      name,
-      userId: user?.id || 'local-user',
-      pinCode,
-      aiKnowledgeFiles: [],
-      slides: initialSlides,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    saveProjects([newProject, ...projects]);
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([
+        {
+          name,
+          user_id: user.id,
+          pin_code: pinCode,
+          slides: initialSlides,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating project:', error);
+      return null;
+    }
+
+    const newProject = transformProject(data);
+    setProjects([newProject, ...projects]);
     return newProject;
   };
 
   const updateProject = async (id: string, updates: any) => {
-    let updatedProject: Project | null = null;
-    const newProjects = projects.map(p => {
+    // Optimistic update with functional state to prevent race conditions
+    setProjects(prev => prev.map(p => {
       if (p.id === id) {
-        updatedProject = { ...p, ...updates, updatedAt: new Date().toISOString() };
-        return updatedProject;
+        return { ...p, ...updates };
       }
       return p;
-    });
-    if (updatedProject) {
-      saveProjects(newProjects);
+    }));
+
+    // Map camelCase to snake_case for Supabase
+    const supabaseUpdates: any = {};
+    if (updates.name !== undefined) supabaseUpdates.name = updates.name;
+    if (updates.pinCode !== undefined) supabaseUpdates.pin_code = updates.pinCode;
+    if (updates.aiKnowledgeFiles !== undefined) supabaseUpdates.ai_knowledge_files = updates.aiKnowledgeFiles;
+    if (updates.slides !== undefined) supabaseUpdates.slides = updates.slides;
+
+    const { data, error } = await supabase
+      .from('projects')
+      .update(supabaseUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating project:', error);
+      // Rollback optimistic update
+      fetchProjects();
+      return null;
     }
+
+    const updatedProject = transformProject(data);
+    // Do NOT overwrite local state with server response to prevent typing cursor glitch!
+    // The optimistic update is enough since it's the exact same data.
     return updatedProject;
   };
 
   const deleteProject = async (id: string) => {
-    saveProjects(projects.filter(p => p.id !== id));
+    const { error } = await supabase.from('projects').delete().eq('id', id);
+
+    if (error) {
+      console.error('Error deleting project:', error);
+      return false;
+    }
+
+    setProjects(projects.filter((p) => p.id !== id));
     return true;
   };
 
   const findProjectByPin = async (pin: string) => {
-    const saved = localStorage.getItem('pitch_tank_projects');
-    if (saved) {
-      try {
-        const parsed: Project[] = JSON.parse(saved);
-        return parsed.find(p => p.pinCode === pin) || null;
-      } catch (e) {}
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('pin_code', pin)
+      .single();
+
+    if (error) {
+      console.error('Error finding project by pin:', error);
+      return null;
     }
-    return projects.find(p => p.pinCode === pin) || null;
+
+    return transformProject(data);
   };
 
   const getProject = async (id: string) => {
-    const saved = localStorage.getItem('pitch_tank_projects');
-    if (saved) {
-      try {
-        const parsed: Project[] = JSON.parse(saved);
-        return parsed.find(p => p.id === id) || null;
-      } catch (e) {}
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching project:', error);
+      return null;
     }
-    return projects.find(p => p.id === id) || null;
+    return transformProject(data);
   };
 
   return {
@@ -106,3 +168,4 @@ export function useProjects(user: User | null) {
     refresh: fetchProjects,
   };
 }
+
