@@ -166,69 +166,70 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
             </div>
           </div>
 
-          <div className="flex gap-2 md:gap-4 items-center flex-wrap md:flex-nowrap justify-end">
+          <div className="flex gap-2 md:gap-3 items-center flex-wrap md:flex-nowrap justify-end">
               {currentSlide.audioUrl && (
-                <div className="flex items-center gap-1">
-                  <button onClick={toggleAudio} className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title={isPlayingAudio ? "Pause" : "Play"}>
-                    {isPlayingAudio ? <Pause size={10} /> : <Play size={10} className="fill-current ml-0.5" />}
+                <div className="flex items-center gap-1 bg-white border-2 border-black p-1 shrink-0 h-9 md:h-10">
+                  <button onClick={toggleAudio} className="h-full aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors" title={isPlayingAudio ? "Pause" : "Play"}>
+                    {isPlayingAudio ? <Pause size={12} /> : <Play size={12} className="fill-current ml-0.5" />}
                   </button>
-                  <button onClick={restartAudio} className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center border-2 border-black bg-white hover:bg-black hover:text-white transition-colors" title="Restart">
-                    <RotateCcw size={10} />
+                  <button onClick={restartAudio} className="h-full aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors" title="Restart">
+                    <RotateCcw size={12} />
                   </button>
                 </div>
               )}
-              <div className="flex items-center gap-2 md:gap-3 mr-1 md:mr-2">
-                <label className="flex items-center gap-1 cursor-pointer">
-                  <input type="checkbox" checked={playAudio} onChange={e => setPlayAudio(e.target.checked)} className="accent-black w-3 h-3" />
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-widest">Audio</span>
+              
+              <div className="bg-white border-2 border-black flex items-center px-3 md:px-4 gap-3 md:gap-4 shrink-0 h-9 md:h-10">
+                <label className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <input type="checkbox" checked={playAudio} onChange={e => setPlayAudio(e.target.checked)} className="accent-black w-3.5 h-3.5" />
+                  <span className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest pt-0.5">Audio</span>
                 </label>
-                <label className="flex items-center gap-1 cursor-pointer">
-                  <input type="checkbox" checked={autoPlayNext} onChange={e => setAutoPlayNext(e.target.checked)} className="accent-black w-3 h-3" />
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-widest">Auto</span>
+                <label className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <input type="checkbox" checked={autoPlayNext} onChange={e => setAutoPlayNext(e.target.checked)} className="accent-black w-3.5 h-3.5" />
+                  <span className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest pt-0.5">Auto</span>
                 </label>
-                <label className="flex items-center gap-1 cursor-pointer">
-                  <input type="checkbox" checked={showSubtitles} onChange={e => setShowSubtitles(e.target.checked)} className="accent-black w-3 h-3" />
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-widest">Subs</span>
+                <label className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <input type="checkbox" checked={showSubtitles} onChange={e => setShowSubtitles(e.target.checked)} className="accent-black w-3.5 h-3.5" />
+                  <span className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest pt-0.5">Subs</span>
                 </label>
               </div>
-              <div className="bg-white border-2 border-black flex items-center p-1 shrink-0">
+
+              <div className="bg-white border-2 border-black flex items-center p-1 shrink-0 h-9 md:h-10">
                 <button 
                   onClick={() => setInteractiveMode(false)}
-                  className={`px-2 py-1 md:px-4 md:py-1.5 text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest transition-colors ${!interactiveMode ? 'bg-black text-white' : 'text-gray-500 hover:text-black'}`}
+                  className={`h-full px-3 md:px-4 text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest transition-colors flex items-center justify-center ${!interactiveMode ? 'bg-black text-white' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
                 >
                   Passive
                 </button>
                 <button 
                   onClick={() => setInteractiveMode(true)}
-                  className={`px-2 py-1 md:px-4 md:py-1.5 text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest transition-colors flex items-center gap-1 md:gap-2 ${interactiveMode ? 'bg-green-500 text-black border border-black' : 'text-gray-500 hover:text-black'}`}
+                  className={`h-full px-3 md:px-4 text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${interactiveMode ? 'bg-green-500 text-black border border-black' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
                 >
-                  <Zap size={10} className="md:w-3 md:h-3"/> <span className="hidden sm:inline">Interactive</span><span className="sm:hidden">Int</span>
+                  <Zap size={12}/> <span className="hidden sm:inline">Interactive</span><span className="sm:hidden">Int</span>
                 </button>
               </div>
 
-              <div className="bg-white border-2 border-black flex items-center p-1 shrink-0 ml-2">
+              <div className="bg-white border-2 border-black flex items-center p-1 shrink-0 h-9 md:h-10 hidden sm:flex">
                 <button 
                   onClick={() => setIsFrameless(true)}
-                  className={`px-2 py-1 md:px-4 md:py-1.5 text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest transition-colors text-gray-500 hover:text-black hover:bg-gray-100 flex items-center gap-1 md:gap-2`}
+                  className={`h-full px-3 md:px-4 text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest transition-colors text-gray-500 hover:text-black hover:bg-gray-100 flex items-center justify-center gap-1.5`}
                 >
-                  <Maximize size={10} className="md:w-3 md:h-3"/> <span className="hidden sm:inline">Fit Screen</span><span className="sm:hidden">Fit</span>
+                  <Maximize size={12}/> <span className="hidden md:inline">Fit Screen</span><span className="md:hidden">Fit</span>
                 </button>
               </div>
-              <div className="w-[2px] h-6 bg-black/10 mx-1 md:mx-2 hidden sm:block"></div>
               
-              <div className="flex items-center gap-1 bg-white border-2 border-black pl-1 shrink-0">
+              <div className="flex items-center bg-white border-2 border-black p-1 shrink-0 h-9 md:h-10">
                   {handleUndo && (
-                    <button onClick={handleUndo} className="hover:bg-gray-100 p-1 md:p-1.5 transition-colors border-r border-black/10"><RotateCcw size={14} className="scale-x-[-1]"/></button>
+                    <button onClick={handleUndo} className="h-full px-2 md:px-3 hover:bg-gray-100 transition-colors flex items-center justify-center border-r border-black/10"><RotateCcw size={14} className="scale-x-[-1]"/></button>
                   )}
                   {handleRedo && (
-                    <button onClick={handleRedo} className="hover:bg-gray-100 p-1 md:p-1.5 transition-colors border-r border-black/10"><RotateCcw size={14}/></button>
+                    <button onClick={handleRedo} className="h-full px-2 md:px-3 hover:bg-gray-100 transition-colors flex items-center justify-center border-r border-black/10"><RotateCcw size={14}/></button>
                   )}
-                  <button onClick={handlePrev} disabled={slideIndex === 0} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronLeft size={16}/></button>
-                  <span className="font-mono font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap pt-0.5 px-2">Pg {slideIndex + 1} / {slides.length}</span>
-                  <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="hover:bg-gray-100 p-1 md:p-1.5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronRight size={16}/></button>
+                  <button onClick={handlePrev} disabled={slideIndex === 0} className="h-full px-2 md:px-3 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors flex items-center justify-center"><ChevronLeft size={16}/></button>
+                  <span className="h-full flex items-center justify-center font-mono font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap pt-0.5 px-3 border-x border-black/10">Pg {slideIndex + 1} / {slides.length}</span>
+                  <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="h-full px-2 md:px-3 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors flex items-center justify-center"><ChevronRight size={16}/></button>
               </div>
 
-              <button onClick={onBack} className="bg-white border-2 border-black text-black hover:bg-black hover:text-white px-3 py-1.5 md:px-6 md:py-2 font-mono font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors shrink-0 ml-2">Exit</button>
+              <button onClick={onBack} className="h-9 md:h-10 bg-black border-2 border-black text-white hover:bg-gray-800 px-4 md:px-6 font-mono font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors flex items-center justify-center shrink-0">Exit</button>
           </div>
         </header>
       )}
