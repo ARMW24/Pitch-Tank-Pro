@@ -408,12 +408,9 @@ export const EditorView: React.FC<EditorViewProps> = ({
                           return (
                             <React.Fragment key={num}>
                                {embedVideo && (
-                                  <div className="absolute z-20" style={{ left: `${embedVideo.x}%`, top: `${embedVideo.y}%`, width: 0, height: 0 }}>
-                                     <motion.div key={`embed-${embedVideo.x}-${embedVideo.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `embedVideo${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
-                                        <div 
-                                          className="absolute -translate-x-1/2 -translate-y-1/2 bg-black/80 border-2 border-dashed border-white shadow-2xl flex items-center justify-center group-hover/marker:border-red-500 transition-colors"
-                                          style={{ width: `${embedVideo.w || 35}%`, aspectRatio: '16/9' }}
-                                        >
+                                  <div className="absolute z-20 pointer-events-none" style={{ left: `${embedVideo.x}%`, top: `${embedVideo.y}%`, width: `${embedVideo.w || 35}%`, aspectRatio: '16/9' }}>
+                                     <motion.div key={`embed-${embedVideo.x}-${embedVideo.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `embedVideo${num}`)} style={{ x: 0, y: 0, left: '-50%', top: '-50%' }} className="cursor-move group/marker w-full h-full absolute pointer-events-auto">
+                                        <div className="w-full h-full bg-black/80 border-2 border-dashed border-white shadow-2xl flex items-center justify-center group-hover/marker:border-red-500 transition-colors relative">
                                           <div className="text-white flex flex-col items-center opacity-50 group-hover/marker:opacity-100 transition-opacity">
                                             <Youtube size={32} className="text-red-500 mb-2" />
                                             <span className="text-[10px] font-mono uppercase font-bold tracking-widest text-center px-4">Autoplay Video {num}<br/>(Drag to move)</span>
