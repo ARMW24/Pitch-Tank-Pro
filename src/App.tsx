@@ -578,11 +578,41 @@ function App() {
             <TrackingView projects={projects} />
          )}
 
+         {view === 'thank_you' && (
+           <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center justify-center p-6 text-center relative">
+             <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
+             <div className="max-w-md w-full bg-white border-4 border-black p-12 shadow-[16px_16px_0_0_#000] relative z-10 flex flex-col items-center">
+                <h1 className="text-4xl font-serif font-black italic uppercase tracking-tighter mb-4 text-black">Thank You</h1>
+                <div className="w-16 h-1 bg-black mb-6"></div>
+                <p className="text-xs font-mono text-gray-600 leading-relaxed mb-10 uppercase tracking-widest font-bold">
+                  Your time and feedback are greatly appreciated. This secure session has been closed.
+                </p>
+                <button 
+                  onClick={() => {
+                     if (!user) {
+                       window.location.href = '/';
+                     } else {
+                       setView('landing');
+                     }
+                  }}
+                  className="w-full bg-black text-white border-2 border-black p-4 font-mono font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+                >
+                  Return to Home
+                </button>
+             </div>
+           </div>
+         )}
+
          {view === 'preview' && activeProject && (
             <PreviewRoom 
                project={activeProject}
                onBack={() => {
-                 if (user) {
+                 if (visitorSessionId) {
+                   setView('thank_you');
+                   setProjectToEdit(null);
+                   setVisitorSessionId(null);
+                   window.history.replaceState({}, document.title, '/');
+                 } else if (user) {
                    setView('editor');
                  } else {
                    setView('landing');

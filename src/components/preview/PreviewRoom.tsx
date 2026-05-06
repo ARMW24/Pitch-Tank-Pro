@@ -240,12 +240,6 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
               </div>
               
               <div className="flex items-center bg-white border-2 border-black p-1 shrink-0 h-9 md:h-10">
-                  {handleUndo && (
-                    <button onClick={handleUndo} className="h-full px-2 md:px-3 hover:bg-gray-100 transition-colors flex items-center justify-center border-r border-black/10"><RotateCcw size={14} className="scale-x-[-1]"/></button>
-                  )}
-                  {handleRedo && (
-                    <button onClick={handleRedo} className="h-full px-2 md:px-3 hover:bg-gray-100 transition-colors flex items-center justify-center border-r border-black/10"><RotateCcw size={14}/></button>
-                  )}
                   <button onClick={handlePrev} disabled={slideIndex === 0} className="h-full px-2 md:px-3 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors flex items-center justify-center"><ChevronLeft size={16}/></button>
                   <span className="h-full flex items-center justify-center font-mono font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap pt-0.5 px-3 border-x border-black/10">Pg {slideIndex + 1} / {slides.length}</span>
                   <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="h-full px-2 md:px-3 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors flex items-center justify-center"><ChevronRight size={16}/></button>
@@ -262,12 +256,6 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                {isFrameless && (
                   <div className="absolute top-4 right-4 z-[100] flex gap-2 items-center">
                     <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded text-white shadow-lg mr-2">
-                       {handleUndo && (
-                         <button onClick={handleUndo} className="hover:text-white text-white/50 transition-colors border-r border-white/20 pr-2"><RotateCcw size={14} className="scale-x-[-1]"/></button>
-                       )}
-                       {handleRedo && (
-                         <button onClick={handleRedo} className="hover:text-white text-white/50 transition-colors border-r border-white/20 pr-2"><RotateCcw size={14}/></button>
-                       )}
                        <button onClick={handlePrev} disabled={slideIndex === 0} className="hover:text-white text-white/50 disabled:opacity-30 disabled:hover:text-white/50 transition-colors"><ChevronLeft size={16}/></button>
                        <span className="font-mono font-bold uppercase text-[10px] whitespace-nowrap pt-0.5">Pg {slideIndex + 1} / {slides.length}</span>
                        <button onClick={handleNext} disabled={slideIndex === slides.length - 1} className="hover:text-white text-white/50 disabled:opacity-30 disabled:hover:text-white/50 transition-colors"><ChevronRight size={16}/></button>
@@ -305,7 +293,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                   )}
                   <div className={`relative flex-1 flex items-center justify-center w-full min-h-0 min-w-0 mx-auto`}>
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-5 z-0">
-                      <div className="text-[12vw] font-serif font-black uppercase tracking-tighter -rotate-12 whitespace-nowrap overflow-hidden text-white md:text-black w-full text-center italic">CONFIDENTIAL</div>
+                      <div className="text-[8vw] font-serif font-black uppercase tracking-tighter -rotate-12 whitespace-nowrap overflow-hidden text-white md:text-black w-full text-center italic">CONFIDENTIAL</div>
                     </div>
 
                     {currentSlide.imageUrl ? (
