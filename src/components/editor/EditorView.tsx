@@ -385,16 +385,15 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     className="w-full h-full flex items-center justify-center relative min-h-0"
                   >
                     {activeSlide.imageUrl ? (
-                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0 min-w-0">
-                        <div className="relative max-w-full max-h-full flex items-center justify-center min-h-0 min-w-0">
-                          <img 
-                            src={activeSlide.imageUrl} 
-                            className={`max-w-full max-h-full transition-all ${fitToFrame ? 'object-contain' : 'object-none'}`}
-                            alt={activeSlide.title} 
-                            fetchPriority="high"
-                            decoding="sync"
-                            onDragStart={(e) => e.preventDefault()}
-                          />
+                      <div className="w-full h-full relative z-10 min-h-0">
+                        <img 
+                          src={activeSlide.imageUrl} 
+                          className={`absolute inset-0 max-w-full max-h-full transition-all m-auto ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`}
+                          alt={activeSlide.title} 
+                          fetchPriority="high"
+                          decoding="sync"
+                          onDragStart={(e) => e.preventDefault()}
+                        />
                           
                           {/* Interactive Markers Rendering */}
                         {[1, 2, 3].map(num => {
@@ -488,7 +487,6 @@ export const EditorView: React.FC<EditorViewProps> = ({
                             </React.Fragment>
                           );
                         })}
-                        </div>
                       </div>
                     ) : activeSlide.isFixed ? (
                       <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>

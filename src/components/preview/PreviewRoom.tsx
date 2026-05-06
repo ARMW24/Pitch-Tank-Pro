@@ -297,17 +297,16 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     </div>
 
                     {currentSlide.imageUrl ? (
-                      <div className="w-full h-full flex items-center justify-center relative z-10 min-h-0 min-w-0" onContextMenu={(e) => e.preventDefault()}>
-                        <div className="relative max-w-full max-h-full flex items-center justify-center min-h-0 min-w-0">
-                          <img 
-                            src={currentSlide.imageUrl} 
-                            className="max-w-full max-h-full object-contain pointer-events-none select-none" 
-                            alt={currentSlide.title} 
-                            fetchPriority="high"
-                            decoding="sync"
-                            loading="eager"
-                            onDragStart={(e) => e.preventDefault()}
-                          />
+                      <div className="w-full h-full relative z-10 min-h-0" onContextMenu={(e) => e.preventDefault()}>
+                        <img 
+                          src={currentSlide.imageUrl} 
+                          className="absolute inset-0 max-w-full max-h-full m-auto object-contain pointer-events-none select-none" 
+                          alt={currentSlide.title} 
+                          fetchPriority="high"
+                          decoding="sync"
+                          loading="eager"
+                          onDragStart={(e) => e.preventDefault()}
+                        />
                           
                           {/* Interactive Markers Rendering */}
                           {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
@@ -416,7 +415,6 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                               </React.Fragment>
                             );
                           })}
-                        </div>
                       </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black">
