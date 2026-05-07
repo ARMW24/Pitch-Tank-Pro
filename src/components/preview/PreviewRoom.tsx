@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, Pause, Play, RotateCcw, Zap, 
-  Maximize, X, Youtube, ImageIcon, FileText, Cpu, Headset
+  Maximize, X, Youtube, ImageIcon, FileText, Cpu, Headset, ExternalLink
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { getGeminiChatResponse } from '../../services/geminiService';
