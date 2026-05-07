@@ -316,6 +316,23 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     </button>
                   </div>
                )}
+               
+               {currentSlide.audioUrl && (
+                 <audio 
+                   ref={audioRef}
+                   src={currentSlide.audioUrl} 
+                   autoPlay={playAudio} 
+                   className="hidden" 
+                   onPlay={() => setIsPlayingAudio(true)}
+                   onPause={() => setIsPlayingAudio(false)}
+                   onEnded={() => {
+                     setIsPlayingAudio(false);
+                     if (autoPlayNext) {
+                       handleNext();
+                     }
+                   }}
+                 />
+              )}
 
                <AnimatePresence mode="wait">
                 <motion.div 
@@ -326,22 +343,6 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                   transition={{ duration: 0.3 }}
                   className="flex-1 w-full flex flex-col items-center justify-center relative p-0 md:p-8 min-h-0 min-w-0 overflow-hidden"
                 >
-                  {currentSlide.audioUrl && (
-                     <audio 
-                       ref={audioRef}
-                       src={currentSlide.audioUrl} 
-                       autoPlay={playAudio} 
-                       className="hidden" 
-                       onPlay={() => setIsPlayingAudio(true)}
-                       onPause={() => setIsPlayingAudio(false)}
-                       onEnded={() => {
-                         setIsPlayingAudio(false);
-                         if (autoPlayNext) {
-                           handleNext();
-                         }
-                       }}
-                     />
-                  )}
                   <div className={`relative flex-1 flex items-center justify-center w-full min-h-0 min-w-0 mx-auto`}>
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-5 z-0">
                       <div className="text-[8vw] font-serif font-black uppercase tracking-tighter -rotate-12 whitespace-nowrap overflow-hidden text-white md:text-black w-full text-center italic">CONFIDENTIAL</div>
