@@ -178,46 +178,54 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <div className="mt-4 pt-4 border-t border-dashed border-black/20 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-black">VC Access Limit</span>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const isEnabled = !project.scheduleEnabled;
-                            onUpdateProject(project.id, { scheduleEnabled: isEnabled });
-                          }}
-                          className={`px-2 py-1 border-2 border-black font-mono font-bold text-[9px] uppercase transition-all shadow-[2px_2px_0_0_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${project.scheduleEnabled ? 'bg-black text-white hover:bg-neutral-800' : 'bg-white text-black hover:bg-neutral-100'}`}
-                        >
-                          {project.scheduleEnabled ? 'ON' : 'OFF'}
-                        </button>
+                        <div className="flex border-2 border-black p-0.5 bg-white shadow-[2px_2px_0_0_#000]">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onUpdateProject(project.id, { scheduleEnabled: true });
+                            }}
+                            className={`px-2.5 py-0.5 font-mono font-black text-[9px] uppercase transition-colors ${project.scheduleEnabled ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'}`}
+                          >
+                            ON
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onUpdateProject(project.id, { scheduleEnabled: false });
+                            }}
+                            className={`px-2.5 py-0.5 font-mono font-black text-[9px] uppercase transition-colors border-l border-black/10 ${!project.scheduleEnabled ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'}`}
+                          >
+                            OFF
+                          </button>
+                        </div>
                       </div>
                       
-                      {project.scheduleEnabled && (
-                        <div className="grid grid-cols-2 gap-2 mt-1">
-                          <div className="flex flex-col">
-                            <label className="text-[8px] font-mono font-bold text-gray-500 uppercase mb-1">Start Time</label>
-                            <input 
-                              type="datetime-local"
-                              value={project.scheduleStart || ""}
-                              onChange={(e) => {
-                                onUpdateProject(project.id, { scheduleStart: e.target.value });
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="border-2 border-black px-1.5 py-1 text-[9px] font-mono bg-white outline-none w-full shadow-[2px_2px_0_0_#000] focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all"
-                            />
-                          </div>
-                          <div className="flex flex-col">
-                            <label className="text-[8px] font-mono font-bold text-gray-500 uppercase mb-1">End Time</label>
-                            <input 
-                              type="datetime-local"
-                              value={project.scheduleEnd || ""}
-                              onChange={(e) => {
-                                onUpdateProject(project.id, { scheduleEnd: e.target.value });
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="border-2 border-black px-1.5 py-1 text-[9px] font-mono bg-white outline-none w-full shadow-[2px_2px_0_0_#000] focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all"
-                            />
-                          </div>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div className="flex flex-col">
+                          <label className="text-[8px] font-mono font-bold text-gray-500 uppercase mb-1">Start Time</label>
+                          <input 
+                            type="datetime-local"
+                            value={project.scheduleStart || ""}
+                            onChange={(e) => {
+                              onUpdateProject(project.id, { scheduleStart: e.target.value });
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="border-2 border-black px-1.5 py-1 text-[9px] font-mono bg-white outline-none w-full shadow-[2px_2px_0_0_#000] focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all"
+                          />
                         </div>
-                      )}
+                        <div className="flex flex-col">
+                          <label className="text-[8px] font-mono font-bold text-gray-500 uppercase mb-1">End Time</label>
+                          <input 
+                            type="datetime-local"
+                            value={project.scheduleEnd || ""}
+                            onChange={(e) => {
+                              onUpdateProject(project.id, { scheduleEnd: e.target.value });
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="border-2 border-black px-1.5 py-1 text-[9px] font-mono bg-white outline-none w-full shadow-[2px_2px_0_0_#000] focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all"
+                          />
+                        </div>
+                      </div>
                     </div>
                 </div>
                 
