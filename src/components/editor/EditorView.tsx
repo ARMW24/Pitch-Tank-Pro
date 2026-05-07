@@ -55,6 +55,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
   audioInputRef,
   onLogout
 }) => {
+  const { slides = [] } = project;
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [timelineHeight, setTimelineHeight] = useState(140);
   const [isFrameless, setIsFrameless] = useState(false);
