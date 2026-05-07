@@ -515,8 +515,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                  )}
                                  
                                  {ytMarker && (
-                                    <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
-                                       <motion.div key={`${ytMarker.x}-${ytMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
+                                    <div className="absolute z-30 opacity-80 pointer-events-auto" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
+                                       <motion.div key={`${ytMarker.x}-${ytMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
                                         <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                           <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
                                           <button 
@@ -530,8 +530,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                     </div>
                                  )}
                                  {galMarker && galMarker.images && galMarker.images.length > 0 && (
-                                    <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, width: 0, height: 0 }}>
-                                       <motion.div key={`${galMarker.x}-${galMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
+                                    <div className="absolute z-30 opacity-80 pointer-events-auto" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, width: 0, height: 0 }}>
+                                       <motion.div key={`${galMarker.x}-${galMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
                                         <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                           <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
                                           <button 
@@ -545,8 +545,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                     </div>
                                  )}
                                  {noteMarker && noteMarker.text && (
-                                    <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, width: 0, height: 0 }}>
-                                       <motion.div key={`${noteMarker.x}-${noteMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
+                                    <div className="absolute z-30 opacity-80 pointer-events-auto" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, width: 0, height: 0 }}>
+                                       <motion.div key={`${noteMarker.x}-${noteMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
                                         <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                           <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
                                           <button 
@@ -560,8 +560,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
                                     </div>
                                  )}
                                  {docMarker && docMarker.url && (
-                                    <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, width: 0, height: 0 }}>
-                                       <motion.div key={`${docMarker.x}-${docMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
+                                    <div className="absolute z-30 opacity-80 pointer-events-auto" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, width: 0, height: 0 }}>
+                                       <motion.div key={`${docMarker.x}-${docMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
                                         <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
                                           <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
                                           <button 
