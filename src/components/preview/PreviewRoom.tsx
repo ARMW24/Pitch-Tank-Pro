@@ -478,7 +478,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                              return (
                                <div 
                                  key={`embed-${num}`}
-                                 className="absolute z-20 shadow-2xl bg-black"
+                                 className="absolute z-20 shadow-2xl bg-black pointer-events-auto"
                                  style={{ 
                                    left: `${embedVideo.x}%`, 
                                    top: `${embedVideo.y}%`, 
