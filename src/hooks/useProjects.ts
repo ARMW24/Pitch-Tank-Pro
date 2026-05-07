@@ -16,19 +16,25 @@ export interface Project {
   scheduleEnd?: string;
 }
 
-const transformProject = (data: any): Project => ({
-  id: data.id,
-  name: data.name,
-  userId: data.user_id,
-  pinCode: data.pin_code,
-  aiKnowledgeFiles: data.ai_knowledge_files || [],
-  slides: data.slides || [],
-  createdAt: data.created_at,
-  updatedAt: data.updated_at,
-  scheduleEnabled: data.schedule_enabled || false,
-  scheduleStart: data.schedule_start || "",
-  scheduleEnd: data.schedule_end || "",
-});
+const transformProject = (data: any): Project => {
+  const allSlides = data.slides || [];
+  const meta = allSlides.find((s: any) => s.isScheduleMeta === true) || {};
+  const cleanSlides = allSlides.filter((s: any) => s.isScheduleMeta !== true);
+
+  return {
+    id: data.id,
+    name: data.name,
+    userId: data.user_id,
+    pinCode: data.pin_code,
+    aiKnowledgeFiles: data.ai_knowledge_files || [],
+    slides: cleanSlides,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    scheduleEnabled: meta.scheduleEnabled || false,
+    scheduleStart: meta.scheduleStart || "",
+    scheduleEnd: meta.scheduleEnd || "",
+  };
+};
 
 export function useProjects(user: User | null) {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -102,9 +108,6 @@ export function useProjects(user: User | null) {
     if (updates.pinCode !== undefined) supabaseUpdates.pin_code = updates.pinCode;
     if (updates.aiKnowledgeFiles !== undefined) supabaseUpdates.ai_knowledge_files = updates.aiKnowledgeFiles;
     if (updates.slides !== undefined) supabaseUpdates.slides = updates.slides;
-    if (updates.scheduleEnabled !== undefined) supabaseUpdates.schedule_enabled = updates.scheduleEnabled;
-    if (updates.scheduleStart !== undefined) supabaseUpdates.schedule_start = updates.scheduleStart;
-    if (updates.scheduleEnd !== undefined) supabaseUpdates.schedule_end = updates.scheduleEnd;
 
     const { error } = await supabase
       .from('projects')
@@ -118,10 +121,35 @@ export function useProjects(user: User | null) {
   };
 
   const updateProject = async (id: string, updates: any) => {
+    let finalUpdates = { ...updates };
+
+    // Optimistically calculate meta updates
+    const proj = projects.find(p => p.id === id);
+    if (proj) {
+      const currentScheduleEnabled = updates.scheduleEnabled !== undefined ? updates.scheduleEnabled : (proj.scheduleEnabled || false);
+      const currentScheduleStart = updates.scheduleStart !== undefined ? updates.scheduleStart : (proj.scheduleStart || "");
+      const currentScheduleEnd = updates.scheduleEnd !== undefined ? updates.scheduleEnd : (proj.scheduleEnd || "");
+      
+      const cleanSlides = (updates.slides !== undefined ? updates.slides : (proj.slides || [])).filter((s: any) => s.isScheduleMeta !== true);
+      
+      const metaSlide = {
+        isScheduleMeta: true,
+        scheduleEnabled: currentScheduleEnabled,
+        scheduleStart: currentScheduleStart,
+        scheduleEnd: currentScheduleEnd
+      };
+
+      finalUpdates.slides = [...cleanSlides, metaSlide];
+    }
+
     // Optimistic update with functional state to prevent race conditions
     setProjects(prev => prev.map(p => {
       if (p.id === id) {
-        return { ...p, ...updates };
+        return { 
+          ...p, 
+          ...updates,
+          slides: (updates.slides !== undefined ? updates.slides : (p.slides || [])).filter((s: any) => s.isScheduleMeta !== true)
+        };
       }
       return p;
     }));
@@ -131,7 +159,7 @@ export function useProjects(user: User | null) {
     }
     
     pendingId.current = id;
-    pendingUpdates.current = { ...pendingUpdates.current, ...updates };
+    pendingUpdates.current = { ...pendingUpdates.current, ...finalUpdates };
 
     if (updateTimeout.current) clearTimeout(updateTimeout.current);
     updateTimeout.current = setTimeout(flushUpdates, 1000);
