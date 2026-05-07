@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, Pause, Play, RotateCcw, Zap, 
-  Maximize, X, Youtube, ImageIcon, FileText, Cpu, Headset, ExternalLink
+  Maximize, X, Youtube, ImageIcon, FileText, Cpu, Headset
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { getGeminiChatResponse } from '../../services/geminiService';
 import { supabase } from '../../lib/supabase';
-import { useImageMetrics } from '../../hooks/useImageMetrics';
 
 interface PreviewRoomProps {
   project: Project;
@@ -51,7 +50,6 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [imgRef, imgMetrics] = useImageMetrics();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,8 +61,59 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
     }
   }, [messages, isAIChatOpen]);
 
+  const [imageBounds, setImageBounds] = useState({ width: '100%', height: '100%', left: '0px', top: '0px', isCalculated: false });
+  const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const calculateImageBounds = () => {
+    if (!imgRef.current || !containerRef.current) return;
+    const img = imgRef.current;
+    const container = containerRef.current;
+
+    const naturalWidth = img.naturalWidth;
+    const naturalHeight = img.naturalHeight;
+    if (!naturalWidth || !naturalHeight) return;
+
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    const imgRatio = naturalWidth / naturalHeight;
+    const containerRatio = containerWidth / containerHeight;
+
+    let width = 0;
+    let height = 0;
+
+    if (imgRatio > containerRatio) {
+      width = containerWidth;
+      height = containerWidth / imgRatio;
+    } else {
+      height = containerHeight;
+      width = containerHeight * imgRatio;
+    }
+
+    const left = (containerWidth - width) / 2;
+    const top = (containerHeight - height) / 2;
+
+    setImageBounds({
+      width: `${width}px`,
+      height: `${height}px`,
+      left: `${left}px`,
+      top: `${top}px`,
+      isCalculated: true
+    });
+  };
+
   const currentSlide = slides.find((s: any) => s.id === activeSid) || slides[0] || { id: 'empty', title: 'Untitled', content: '', appendix: {} };
   const slideIndex = Math.max(0, slides.findIndex((s: any) => s.id === activeSid));
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(() => {
+      calculateImageBounds();
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [currentSlide?.id, currentSlide?.imageUrl]);
 
   useEffect(() => {
     if (!activeSid && project && slides.length > 0) {
@@ -297,136 +346,141 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-5 z-0">
                       <div className="text-[8vw] font-serif font-black uppercase tracking-tighter -rotate-12 whitespace-nowrap overflow-hidden text-white md:text-black w-full text-center italic">CONFIDENTIAL</div>
                     </div>
+                     {currentSlide.imageUrl ? (
+                       <div className="w-full h-full relative min-h-0" ref={containerRef} onContextMenu={(e) => e.preventDefault()}>
+                         <img 
+                           ref={imgRef}
+                           onLoad={calculateImageBounds}
+                           src={currentSlide.imageUrl} 
+                           className="absolute inset-0 max-w-full max-h-full m-auto object-contain pointer-events-none select-none" 
+                           alt={currentSlide.title} 
+                           fetchPriority="high"
+                           decoding="sync"
+                           loading="eager"
+                           onDragStart={(e) => e.preventDefault()}
+                         />
+                           
+                         {/* Interactive Markers Wrapper - Coordinates lock to the painted image box */}
+                         <div 
+                           className="absolute z-10 relative min-h-0 min-w-0"
+                           style={{
+                             left: imageBounds.left,
+                             top: imageBounds.top,
+                             width: imageBounds.width,
+                             height: imageBounds.height,
+                             pointerEvents: 'none'
+                           }}
+                         >
+                           {/* Interactive Markers Rendering */}
+                           {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
+                           {[1, 2, 3].map(num => {
+                             const embedVideo = currentSlide[`embedVideo${num}`];
+                             if (!embedVideo) return null;
+                             
+                             let embedUrl = embedVideo.url;
+                             if (embedUrl.includes('watch?v=')) {
+                               embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                             } else if (embedUrl.includes('youtu.be/')) {
+                               embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
+                             }
+                             
+                             // Add autoplay and mute params
+                             embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1&mute=1&controls=1&loop=1';
 
-                    {currentSlide.imageUrl ? (
-                      <div className="w-full h-full relative z-10 min-h-0" onContextMenu={(e) => e.preventDefault()}>
-                        <img 
-                          ref={imgRef}
-                          src={currentSlide.imageUrl} 
-                          className="absolute inset-0 max-w-full max-h-full m-auto object-contain pointer-events-none select-none" 
-                          alt={currentSlide.title} 
-                          fetchPriority="high"
-                          decoding="sync"
-                          loading="eager"
-                          onDragStart={(e) => e.preventDefault()}
-                        />
-                          
-                        {/* Interactive Markers Rendering - Locked to exact image dimensions */}
-                        {imgMetrics.width > 0 && (
-                          <div 
-                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                            style={{ width: imgMetrics.width, height: imgMetrics.height }}
-                          >
-                            {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
-                            {[1, 2, 3].map(num => {
-                              const embedVideo = currentSlide[`embedVideo${num}`];
-                              if (!embedVideo) return null;
-                              
-                              let embedUrl = embedVideo.url;
-                              if (embedUrl.includes('watch?v=')) {
-                                embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-                              } else if (embedUrl.includes('youtu.be/')) {
-                                embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
-                              }
-                              
-                              // Add autoplay and mute params
-                              embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1&mute=1&controls=1&loop=1';
+                             return (
+                               <div 
+                                 key={`embed-${num}`}
+                                 className="absolute z-20 shadow-2xl bg-black"
+                                 style={{ 
+                                   left: `${embedVideo.x}%`, 
+                                   top: `${embedVideo.y}%`, 
+                                   transform: 'translate(-50%, -50%)',
+                                   width: `${embedVideo.w || 35}%`, 
+                                   aspectRatio: '16/9'
+                                 }}
+                               >
+                                 <iframe
+                                   src={embedUrl}
+                                   title={`Embedded Video ${num}`}
+                                   className="w-full h-full border-0"
+                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                   allowFullScreen
+                                 ></iframe>
+                               </div>
+                             );
+                           })}
 
-                              return (
-                                <div 
-                                  key={`embed-${num}`}
-                                  className="absolute z-20 shadow-2xl bg-black pointer-events-auto"
-                                  style={{ 
-                                    left: `${embedVideo.x}%`, 
-                                    top: `${embedVideo.y}%`, 
-                                    transform: 'translate(-50%, -50%)',
-                                    width: `${embedVideo.w || 35}%`, 
-                                    aspectRatio: '16/9'
-                                  }}
-                                >
-                                  <iframe
-                                    src={embedUrl}
-                                    title={`Embedded Video ${num}`}
-                                    className="w-full h-full border-0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                  ></iframe>
-                                </div>
-                              );
-                            })}
+                           {interactiveMode && [1, 2, 3].map(num => {
+                             const ytMarker = currentSlide[`youtubeMarker${num}`];
+                             const galMarker = currentSlide[`galleryMarker${num}`];
+                             const noteMarker = currentSlide[`noteMarker${num}`];
+                             const docMarker = currentSlide[`docMarker${num}`];
+                             
+                             return (
+                               <React.Fragment key={num}>
+                                  {ytMarker && (
+                                     <button 
+                                       className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                       style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                       onClick={() => {
+                                         let embedUrl = ytMarker.url;
+                                         if (embedUrl.includes('watch?v=')) {
+                                           embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                                         } else if (embedUrl.includes('youtu.be/')) {
+                                           embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
+                                         }
+                                         setPlayingVideo(embedUrl);
+                                       }}
+                                     >
+                                       <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                         <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Play {num > 1 ? num : ''}</span>
+                                       </div>
+                                     </button>
+                                  )}
+                                  
+                                  {galMarker && galMarker.images && galMarker.images.length > 0 && (
+                                     <button 
+                                       className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                       style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                       onClick={() => setActiveGallery({ images: galMarker.images, index: 0 })}
+                                     >
+                                       <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                         <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
+                                       </div>
+                                     </button>
+                                  )}
+                                  
+                                  {noteMarker && noteMarker.text && (
+                                     <button 
+                                       className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                       style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                       onClick={() => setActiveNote({ text: noteMarker.text, title: `Note ${num}` })}
+                                     >
+                                       <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                         <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Read</span>
+                                       </div>
+                                     </button>
+                                  )}
 
-                            {interactiveMode && [1, 2, 3].map(num => {
-                              const ytMarker = currentSlide[`youtubeMarker${num}`];
-                              const galMarker = currentSlide[`galleryMarker${num}`];
-                              const noteMarker = currentSlide[`noteMarker${num}`];
-                              const docMarker = currentSlide[`docMarker${num}`];
-                              
-                              return (
-                                <React.Fragment key={num}>
-                                   {ytMarker && (
-                                      <button 
-                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
-                                        style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                        onClick={() => {
-                                          let embedUrl = ytMarker.url;
-                                          if (embedUrl.includes('watch?v=')) {
-                                            embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-                                          } else if (embedUrl.includes('youtu.be/')) {
-                                            embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
-                                          }
-                                          setPlayingVideo(embedUrl);
-                                        }}
-                                      >
-                                        <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                          <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Play {num > 1 ? num : ''}</span>
-                                        </div>
-                                      </button>
-                                   )}
-                                   
-                                   {galMarker && galMarker.images && galMarker.images.length > 0 && (
-                                      <button 
-                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
-                                        style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                        onClick={() => setActiveGallery({ images: galMarker.images, index: 0 })}
-                                      >
-                                        <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                          <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
-                                        </div>
-                                      </button>
-                                   )}
-                                   
-                                   {noteMarker && noteMarker.text && (
-                                      <button 
-                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
-                                        style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                        onClick={() => setActiveNote({ text: noteMarker.text, title: `Note ${num}` })}
-                                      >
-                                        <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                          <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Read</span>
-                                        </div>
-                                      </button>
-                                   )}
-
-                                   {docMarker && docMarker.url && (
-                                      <a 
-                                        href={docMarker.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
-                                        style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                      >
-                                        <div className="bg-green-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                          <ExternalLink size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Open</span>
-                                        </div>
-                                      </a>
-                                   )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
+                                  {docMarker && docMarker.url && (
+                                     <a 
+                                       href={docMarker.url}
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                       style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                     >
+                                       <div className="bg-green-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                         <ExternalLink size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Open</span>
+                                       </div>
+                                     </a>
+                                  )}
+                               </React.Fragment>
+                             );
+                           })}
+                         </div>
+                       </div>
+                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black">
                         <h1 className="text-[6vw] font-serif font-black uppercase mb-6 tracking-tighter italic leading-none">{currentSlide.title}</h1>
                         <div className={`w-24 h-1 mb-8 mx-auto bg-black`}></div>
