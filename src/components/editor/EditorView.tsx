@@ -362,10 +362,29 @@ export const EditorView: React.FC<EditorViewProps> = ({
            <div className={`w-full flex-1 min-h-[0] ${isFrameless ? 'bg-gray-50' : 'bg-white border-2 border-black shadow-[12px_12px_0_0_#000]'} overflow-hidden relative flex flex-col group`}>
               {!isFrameless && (
                 <div className="h-10 border-b-2 border-black bg-[#F4F4F1] flex items-center px-4 justify-between shrink-0">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
-                    <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
-                    <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
+                      <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
+                      <div className="w-3 h-3 border-2 border-black rounded-full bg-white"></div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 border-l-2 border-black pl-3 ml-1 h-5">
+                      <button 
+                        onClick={() => setIsEditorOpen(true)}
+                        className="flex items-center gap-1 px-2 py-0.5 bg-white border border-black font-mono font-bold text-[9px] uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_#000] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+                      >
+                        <Settings2 size={10} />
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => setView('preview')}
+                        className="flex items-center gap-1 px-2 py-0.5 bg-white border border-black font-mono font-bold text-[9px] uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_#000] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+                      >
+                        <Eye size={10} />
+                        Preview Play
+                      </button>
+                    </div>
                   </div>
                   <div className="flex items-center">
                      {/* Audio Controls */}
