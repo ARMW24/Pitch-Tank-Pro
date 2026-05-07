@@ -384,6 +384,13 @@ export const EditorView: React.FC<EditorViewProps> = ({
                         <Eye size={10} />
                         Preview Play
                       </button>
+                      <button 
+                        onClick={() => setShowNarrative(!showNarrative)}
+                        className={`flex items-center gap-1 px-2 py-0.5 border border-black font-mono font-bold text-[9px] uppercase tracking-widest transition-all shadow-[2px_2px_0_0_#000] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] ${showNarrative ? 'bg-black text-white' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+                      >
+                        <FileText size={10} />
+                        Narrative Log
+                      </button>
                     </div>
                   </div>
                   <div className="flex items-center">
