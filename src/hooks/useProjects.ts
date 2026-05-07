@@ -11,6 +11,9 @@ export interface Project {
   slides: any[];
   createdAt: string;
   updatedAt: string;
+  scheduleEnabled?: boolean;
+  scheduleStart?: string;
+  scheduleEnd?: string;
 }
 
 const transformProject = (data: any): Project => ({
@@ -22,6 +25,9 @@ const transformProject = (data: any): Project => ({
   slides: data.slides || [],
   createdAt: data.created_at,
   updatedAt: data.updated_at,
+  scheduleEnabled: data.schedule_enabled || false,
+  scheduleStart: data.schedule_start || "",
+  scheduleEnd: data.schedule_end || "",
 });
 
 export function useProjects(user: User | null) {
@@ -96,6 +102,9 @@ export function useProjects(user: User | null) {
     if (updates.pinCode !== undefined) supabaseUpdates.pin_code = updates.pinCode;
     if (updates.aiKnowledgeFiles !== undefined) supabaseUpdates.ai_knowledge_files = updates.aiKnowledgeFiles;
     if (updates.slides !== undefined) supabaseUpdates.slides = updates.slides;
+    if (updates.scheduleEnabled !== undefined) supabaseUpdates.schedule_enabled = updates.scheduleEnabled;
+    if (updates.scheduleStart !== undefined) supabaseUpdates.schedule_start = updates.scheduleStart;
+    if (updates.scheduleEnd !== undefined) supabaseUpdates.schedule_end = updates.scheduleEnd;
 
     const { error } = await supabase
       .from('projects')

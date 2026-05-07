@@ -443,6 +443,7 @@ function App() {
               onPreviewProject={(pid) => { setActivePid(pid); setView('preview'); }}
               findProjectByPin={findProjectByPin}
               onLogout={handleSignOut}
+              onUpdateProject={updateProject}
            />
          )}
 

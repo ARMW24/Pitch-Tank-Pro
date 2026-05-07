@@ -225,6 +225,93 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   }, [visitorSessionId]);
 
 
+  const isRoomClosed = () => {
+    if (!project.scheduleEnabled) return false;
+    const now = new Date();
+    
+    if (project.scheduleStart) {
+      const start = new Date(project.scheduleStart);
+      if (now < start) return true;
+    }
+    
+    if (project.scheduleEnd) {
+      const end = new Date(project.scheduleEnd);
+      if (now > end) return true;
+    }
+    
+    return false;
+  };
+
+  const formatScheduleTime = (isoString?: string) => {
+    if (!isoString) return "";
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (e) {
+      return isoString;
+    }
+  };
+
+  if (isRoomClosed()) {
+    return (
+      <div className="flex-1 bg-[#F4F4F1] text-black flex flex-col items-center justify-center relative h-full overflow-hidden min-h-0 min-w-0 p-6">
+        <div className="absolute inset-0 bg-dot-pattern opacity-10 animate-pulse"></div>
+        <div className="max-w-lg w-full bg-white border-4 border-black p-8 md:p-12 text-center shadow-[12px_12px_0_0_#000] relative z-10 transition-all">
+          <div className="w-20 h-20 bg-black text-white flex items-center justify-center rounded-full border-4 border-black mx-auto mb-8 animate-bounce">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          
+          <h2 className="text-3xl md:text-4xl font-serif font-black italic uppercase tracking-tighter text-black leading-tight mb-4">
+            PITCH ROOM CURRENTLY CLOSED
+          </h2>
+          
+          <div className="h-1 w-20 bg-black mx-auto mb-6"></div>
+          
+          <p className="text-gray-500 font-mono text-[11px] uppercase tracking-wider mb-8 leading-relaxed">
+            This pitch folder has scheduling constraints enabled and is currently not open for viewing. Please check back during the scheduled hours.
+          </p>
+
+          {(project.scheduleStart || project.scheduleEnd) && (
+            <div className="bg-[#F4F4F1] border-2 border-black p-4 mb-8 text-left shadow-[4px_4px_0_0_#000]">
+              <div className="font-mono text-[10px] uppercase font-black tracking-widest text-black mb-3">SCHEDULED TIME WINDOW:</div>
+              <div className="space-y-2 font-mono text-[11px]">
+                {project.scheduleStart && (
+                  <div className="flex justify-between items-center border-b border-black/10 pb-1.5">
+                    <span className="text-gray-500 uppercase">START TIME:</span>
+                    <span className="font-bold text-black">{formatScheduleTime(project.scheduleStart)}</span>
+                  </div>
+                )}
+                {project.scheduleEnd && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 uppercase">END TIME:</span>
+                    <span className="font-bold text-black">{formatScheduleTime(project.scheduleEnd)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <button 
+            onClick={onBack} 
+            className="w-full py-4 bg-black text-white hover:bg-[#F4F4F1] hover:text-black border-2 border-black font-mono font-bold text-xs uppercase tracking-widest transition-all shadow-[4px_4px_0_0_#000] active:translate-y-1 active:translate-x-1 active:shadow-none"
+          >
+            Exit pitch room
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`flex-1 bg-[#F4F4F1] text-black flex flex-col relative h-full overflow-hidden min-h-0 min-w-0`}>
       {!isFrameless && <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>}
@@ -621,7 +708,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
              <div className="bg-[#F4F4F1] border-b-2 border-black px-4 py-3 flex justify-between items-center shrink-0">
                <div className="flex items-center gap-2">
                  <Cpu size={16} className="text-black" />
-                 <span className="font-mono font-bold text-[10px] tracking-widest uppercase">AI Agent</span>
+                 <span className="font-mono font-bold text-[10px] tracking-widest uppercase">Founder AI Agent</span>
                </div>
                <button onClick={() => setIsAIChatOpen(false)} className="hover:text-red-500 transition-colors"><X size={14}/></button>
              </div>
