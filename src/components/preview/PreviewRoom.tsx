@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, Pause, Play, RotateCcw, Zap, 
-  Maximize, X, Youtube, ImageIcon, FileText, Cpu, Headset
+  Maximize, X, Youtube, ImageIcon, FileText, Cpu, Headset, ExternalLink
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { getGeminiChatResponse } from '../../services/geminiService';
 import { supabase } from '../../lib/supabase';
+import { useImageMetrics } from '../../hooks/useImageMetrics';
 
 interface PreviewRoomProps {
   project: Project;
@@ -50,6 +51,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [imgRef, imgMetrics] = useImageMetrics();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -299,6 +301,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                     {currentSlide.imageUrl ? (
                       <div className="w-full h-full relative z-10 min-h-0" onContextMenu={(e) => e.preventDefault()}>
                         <img 
+                          ref={imgRef}
                           src={currentSlide.imageUrl} 
                           className="absolute inset-0 max-w-full max-h-full m-auto object-contain pointer-events-none select-none" 
                           alt={currentSlide.title} 
@@ -308,113 +311,120 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
                           onDragStart={(e) => e.preventDefault()}
                         />
                           
-                          {/* Interactive Markers Rendering */}
-                          {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
-                          {[1, 2, 3].map(num => {
-                            const embedVideo = currentSlide[`embedVideo${num}`];
-                            if (!embedVideo) return null;
-                            
-                            let embedUrl = embedVideo.url;
-                            if (embedUrl.includes('watch?v=')) {
-                              embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-                            } else if (embedUrl.includes('youtu.be/')) {
-                              embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
-                            }
-                            
-                            // Add autoplay and mute params
-                            embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1&mute=1&controls=1&loop=1';
+                        {/* Interactive Markers Rendering - Locked to exact image dimensions */}
+                        {imgMetrics.width > 0 && (
+                          <div 
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                            style={{ width: imgMetrics.width, height: imgMetrics.height }}
+                          >
+                            {/* Autoplay Embedded Videos (Always visible regardless of interactiveMode) */}
+                            {[1, 2, 3].map(num => {
+                              const embedVideo = currentSlide[`embedVideo${num}`];
+                              if (!embedVideo) return null;
+                              
+                              let embedUrl = embedVideo.url;
+                              if (embedUrl.includes('watch?v=')) {
+                                embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                              } else if (embedUrl.includes('youtu.be/')) {
+                                embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
+                              }
+                              
+                              // Add autoplay and mute params
+                              embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1&mute=1&controls=1&loop=1';
 
-                            return (
-                              <div 
-                                key={`embed-${num}`}
-                                className="absolute z-20 shadow-2xl bg-black"
-                                style={{ 
-                                  left: `${embedVideo.x}%`, 
-                                  top: `${embedVideo.y}%`, 
-                                  transform: 'translate(-50%, -50%)',
-                                  width: `${embedVideo.w || 35}%`, 
-                                  aspectRatio: '16/9'
-                                }}
-                              >
-                                <iframe
-                                  src={embedUrl}
-                                  title={`Embedded Video ${num}`}
-                                  className="w-full h-full border-0"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                ></iframe>
-                              </div>
-                            );
-                          })}
+                              return (
+                                <div 
+                                  key={`embed-${num}`}
+                                  className="absolute z-20 shadow-2xl bg-black pointer-events-auto"
+                                  style={{ 
+                                    left: `${embedVideo.x}%`, 
+                                    top: `${embedVideo.y}%`, 
+                                    transform: 'translate(-50%, -50%)',
+                                    width: `${embedVideo.w || 35}%`, 
+                                    aspectRatio: '16/9'
+                                  }}
+                                >
+                                  <iframe
+                                    src={embedUrl}
+                                    title={`Embedded Video ${num}`}
+                                    className="w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  ></iframe>
+                                </div>
+                              );
+                            })}
 
-                          {interactiveMode && [1, 2, 3].map(num => {
-                            const ytMarker = currentSlide[`youtubeMarker${num}`];
-                            const galMarker = currentSlide[`galleryMarker${num}`];
-                            const noteMarker = currentSlide[`noteMarker${num}`];
-                            const docMarker = currentSlide[`docMarker${num}`];
-                            
-                            return (
-                              <React.Fragment key={num}>
-                                 {ytMarker && (
-                                    <button 
-                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                      style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                      onClick={() => {
-                                        let embedUrl = ytMarker.url;
-                                        if (embedUrl.includes('watch?v=')) {
-                                          embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-                                        } else if (embedUrl.includes('youtu.be/')) {
-                                          embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
-                                        }
-                                        setPlayingVideo(embedUrl);
-                                      }}
-                                    >
-                                      <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                        <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Play {num > 1 ? num : ''}</span>
-                                      </div>
-                                    </button>
-                                 )}
-                                 
-                                 {galMarker && galMarker.images && galMarker.images.length > 0 && (
-                                    <button 
-                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                      style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                      onClick={() => setActiveGallery({ images: galMarker.images, index: 0 })}
-                                    >
-                                      <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                        <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
-                                      </div>
-                                    </button>
-                                 )}
-                                 
-                                 {noteMarker && noteMarker.text && (
-                                    <button 
-                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                      style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                      onClick={() => setActiveNote({ text: noteMarker.text, title: `Note ${num}` })}
-                                    >
-                                      <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                        <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Read</span>
-                                      </div>
-                                    </button>
-                                 )}
+                            {interactiveMode && [1, 2, 3].map(num => {
+                              const ytMarker = currentSlide[`youtubeMarker${num}`];
+                              const galMarker = currentSlide[`galleryMarker${num}`];
+                              const noteMarker = currentSlide[`noteMarker${num}`];
+                              const docMarker = currentSlide[`docMarker${num}`];
+                              
+                              return (
+                                <React.Fragment key={num}>
+                                   {ytMarker && (
+                                      <button 
+                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                        style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                        onClick={() => {
+                                          let embedUrl = ytMarker.url;
+                                          if (embedUrl.includes('watch?v=')) {
+                                            embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                                          } else if (embedUrl.includes('youtu.be/')) {
+                                            embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
+                                          }
+                                          setPlayingVideo(embedUrl);
+                                        }}
+                                      >
+                                        <div className="bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                          <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Play {num > 1 ? num : ''}</span>
+                                        </div>
+                                      </button>
+                                   )}
+                                   
+                                   {galMarker && galMarker.images && galMarker.images.length > 0 && (
+                                      <button 
+                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                        style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                        onClick={() => setActiveGallery({ images: galMarker.images, index: 0 })}
+                                      >
+                                        <div className="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                          <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
+                                        </div>
+                                      </button>
+                                   )}
+                                   
+                                   {noteMarker && noteMarker.text && (
+                                      <button 
+                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                        style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                        onClick={() => setActiveNote({ text: noteMarker.text, title: `Note ${num}` })}
+                                      >
+                                        <div className="bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                          <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Read</span>
+                                        </div>
+                                      </button>
+                                   )}
 
-                                 {docMarker && docMarker.url && (
-                                    <a 
-                                      href={docMarker.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity"
-                                      style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}
-                                    >
-                                      <div className="bg-green-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
-                                        <ExternalLink size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Open</span>
-                                      </div>
-                                    </a>
-                                 )}
-                              </React.Fragment>
-                            );
-                          })}
+                                   {docMarker && docMarker.url && (
+                                      <a 
+                                        href={docMarker.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute z-30 animate-pulse hover:animate-none opacity-80 hover:opacity-100 transition-opacity pointer-events-auto"
+                                        style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, transform: 'translate(-50%, -50%)' }}
+                                      >
+                                        <div className="bg-green-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 hover:scale-105 transition-transform whitespace-nowrap">
+                                          <ExternalLink size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Open</span>
+                                        </div>
+                                      </a>
+                                   )}
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black">

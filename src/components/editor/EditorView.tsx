@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { FloatingEditor } from './FloatingEditor';
+import { useImageMetrics } from '../../hooks/useImageMetrics';
 import { supabase } from '../../lib/supabase';
 
 interface EditorViewProps {
@@ -71,6 +72,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const isResizing = useRef(false);
+  const [imgRef, imgMetrics] = useImageMetrics();
 
   const slides = project.slides || [];
   const activeSlide = slides.find((s: any) => s.id === (activeSid || slides[0]?.id)) || slides[0] || { title: 'Untitled', content: '', id: 'empty' };
@@ -387,6 +389,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                     {activeSlide.imageUrl ? (
                       <div className="w-full h-full relative z-10 min-h-0">
                         <img 
+                          ref={imgRef}
                           src={activeSlide.imageUrl} 
                           className={`absolute inset-0 max-w-full max-h-full transition-all m-auto ${fitToFrame ? 'object-contain w-full h-full' : 'object-none'}`}
                           alt={activeSlide.title} 
@@ -395,98 +398,105 @@ export const EditorView: React.FC<EditorViewProps> = ({
                           onDragStart={(e) => e.preventDefault()}
                         />
                           
-                          {/* Interactive Markers Rendering */}
-                        {[1, 2, 3].map(num => {
-                          const embedVideo = activeSlide[`embedVideo${num}`];
-                          const ytMarker = activeSlide[`youtubeMarker${num}`];
-                          const galMarker = activeSlide[`galleryMarker${num}`];
-                          const noteMarker = activeSlide[`noteMarker${num}`];
-                          const docMarker = activeSlide[`docMarker${num}`];
-                          
-                          return (
-                            <React.Fragment key={num}>
-                               {embedVideo && (
-                                  <div className="absolute z-20 pointer-events-none" style={{ left: `${embedVideo.x}%`, top: `${embedVideo.y}%`, width: `${embedVideo.w || 35}%`, aspectRatio: '16/9' }}>
-                                     <motion.div key={`embed-${embedVideo.x}-${embedVideo.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `embedVideo${num}`)} style={{ x: 0, y: 0, left: '-50%', top: '-50%' }} className="cursor-move group/marker w-full h-full absolute pointer-events-auto">
-                                        <div className="w-full h-full bg-black/80 border-2 border-dashed border-white shadow-2xl flex items-center justify-center group-hover/marker:border-red-500 transition-colors relative">
-                                          <div className="text-white flex flex-col items-center opacity-50 group-hover/marker:opacity-100 transition-opacity">
-                                            <Youtube size={32} className="text-red-500 mb-2" />
-                                            <span className="text-[10px] font-mono uppercase font-bold tracking-widest text-center px-4">Autoplay Video {num}<br/>(Drag to move)</span>
+                        {/* Interactive Markers Rendering - Locked to exact image dimensions */}
+                        {imgMetrics.width > 0 && (
+                          <div 
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                            style={{ width: imgMetrics.width, height: imgMetrics.height }}
+                          >
+                            {[1, 2, 3].map(num => {
+                              const embedVideo = activeSlide[`embedVideo${num}`];
+                              const ytMarker = activeSlide[`youtubeMarker${num}`];
+                              const galMarker = activeSlide[`galleryMarker${num}`];
+                              const noteMarker = activeSlide[`noteMarker${num}`];
+                              const docMarker = activeSlide[`docMarker${num}`];
+                              
+                              return (
+                                <React.Fragment key={num}>
+                                   {embedVideo && (
+                                      <div className="absolute z-20 pointer-events-none" style={{ left: `${embedVideo.x}%`, top: `${embedVideo.y}%`, width: `${embedVideo.w || 35}%`, aspectRatio: '16/9' }}>
+                                         <motion.div key={`embed-${embedVideo.x}-${embedVideo.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `embedVideo${num}`)} style={{ x: 0, y: 0, left: '-50%', top: '-50%' }} className="cursor-move group/marker w-full h-full absolute pointer-events-auto">
+                                            <div className="w-full h-full bg-black/80 border-2 border-dashed border-white shadow-2xl flex items-center justify-center group-hover/marker:border-red-500 transition-colors relative">
+                                              <div className="text-white flex flex-col items-center opacity-50 group-hover/marker:opacity-100 transition-opacity">
+                                                <Youtube size={32} className="text-red-500 mb-2" />
+                                                <span className="text-[10px] font-mono uppercase font-bold tracking-widest text-center px-4">Autoplay Video {num}<br/>(Drag to move)</span>
+                                              </div>
+                                              <button 
+                                                onClick={(e) => { e.stopPropagation(); updateActiveSlide(`embedVideo${num}`, null); }}
+                                                className="absolute -top-3 -right-3 bg-red-600 text-white p-1.5 rounded-full border-2 border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
+                                              >
+                                                <X size={12} />
+                                              </button>
+                                            </div>
+                                         </motion.div>
+                                      </div>
+                                   )}
+                                   
+                                   {ytMarker && (
+                                      <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
+                                         <motion.div key={`${ytMarker.x}-${ytMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
+                                          <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                            <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
+                                            <button 
+                                              onClick={(e) => { e.stopPropagation(); updateActiveSlide(`youtubeMarker${num}`, null); }}
+                                              className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
+                                            >
+                                              <X size={8} />
+                                            </button>
                                           </div>
-                                          <button 
-                                            onClick={(e) => { e.stopPropagation(); updateActiveSlide(`embedVideo${num}`, null); }}
-                                            className="absolute -top-3 -right-3 bg-red-600 text-white p-1.5 rounded-full border-2 border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
-                                          >
-                                            <X size={12} />
-                                          </button>
-                                        </div>
-                                     </motion.div>
-                                  </div>
-                               )}
-                               
-                               {ytMarker && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${ytMarker.x}%`, top: `${ytMarker.y}%`, width: 0, height: 0 }}>
-                                     <motion.div key={`${ytMarker.x}-${ytMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `youtubeMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
-                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                        <Youtube size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Video {num}</span>
-                                        <button 
-                                          onClick={(e) => { e.stopPropagation(); updateActiveSlide(`youtubeMarker${num}`, null); }}
-                                          className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
-                                        >
-                                          <X size={8} />
-                                        </button>
+                                        </motion.div>
                                       </div>
-                                    </motion.div>
-                                  </div>
-                               )}
-                               {galMarker && galMarker.images && galMarker.images.length > 0 && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, width: 0, height: 0 }}>
-                                     <motion.div key={`${galMarker.x}-${galMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
-                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                        <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
-                                        <button 
-                                          onClick={(e) => { e.stopPropagation(); updateActiveSlide(`galleryMarker${num}`, null); }}
-                                          className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
-                                        >
-                                          <X size={8} />
-                                        </button>
+                                   )}
+                                   {galMarker && galMarker.images && galMarker.images.length > 0 && (
+                                      <div className="absolute z-30 opacity-80" style={{ left: `${galMarker.x}%`, top: `${galMarker.y}%`, width: 0, height: 0 }}>
+                                         <motion.div key={`${galMarker.x}-${galMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `galleryMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
+                                          <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                            <ImageIcon size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Gallery {num}</span>
+                                            <button 
+                                              onClick={(e) => { e.stopPropagation(); updateActiveSlide(`galleryMarker${num}`, null); }}
+                                              className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
+                                            >
+                                              <X size={8} />
+                                            </button>
+                                          </div>
+                                        </motion.div>
                                       </div>
-                                    </motion.div>
-                                  </div>
-                               )}
-                               {noteMarker && noteMarker.text && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, width: 0, height: 0 }}>
-                                     <motion.div key={`${noteMarker.x}-${noteMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
-                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                        <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
-                                        <button 
-                                          onClick={(e) => { e.stopPropagation(); updateActiveSlide(`noteMarker${num}`, null); }}
-                                          className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
-                                        >
-                                          <X size={8} />
-                                        </button>
+                                   )}
+                                   {noteMarker && noteMarker.text && (
+                                      <div className="absolute z-30 opacity-80" style={{ left: `${noteMarker.x}%`, top: `${noteMarker.y}%`, width: 0, height: 0 }}>
+                                         <motion.div key={`${noteMarker.x}-${noteMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `noteMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
+                                          <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-black p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                            <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Note {num}</span>
+                                            <button 
+                                              onClick={(e) => { e.stopPropagation(); updateActiveSlide(`noteMarker${num}`, null); }}
+                                              className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
+                                            >
+                                              <X size={8} />
+                                            </button>
+                                          </div>
+                                        </motion.div>
                                       </div>
-                                    </motion.div>
-                                  </div>
-                               )}
-                               {docMarker && docMarker.url && (
-                                  <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, width: 0, height: 0 }}>
-                                     <motion.div key={`${docMarker.x}-${docMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker">
-                                      <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
-                                        <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
-                                        <button 
-                                          onClick={(e) => { e.stopPropagation(); updateActiveSlide(`docMarker${num}`, null); }}
-                                          className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
-                                        >
-                                          <X size={8} />
-                                        </button>
+                                   )}
+                                   {docMarker && docMarker.url && (
+                                      <div className="absolute z-30 opacity-80" style={{ left: `${docMarker.x}%`, top: `${docMarker.y}%`, width: 0, height: 0 }}>
+                                         <motion.div key={`${docMarker.x}-${docMarker.y}`} drag dragMomentum={false} onDragEnd={(e, info) => handleMarkerDragEnd(e, info, `docMarker${num}`)} style={{ x: 0, y: 0 }} className="cursor-move group/marker pointer-events-auto">
+                                          <div className="absolute -translate-x-1/2 -translate-y-1/2 bg-purple-500 text-white p-1.5 md:p-2 rounded-full shadow-lg border border-black flex items-center gap-1 md:pr-3 whitespace-nowrap">
+                                            <FileText size={16} /> <span className="hidden md:inline text-[9px] font-mono font-bold uppercase tracking-widest">Doc {num}</span>
+                                            <button 
+                                              onClick={(e) => { e.stopPropagation(); updateActiveSlide(`docMarker${num}`, null); }}
+                                              className="absolute -top-2 -right-2 bg-black text-white p-1 rounded-full border border-white opacity-0 group-hover/marker:opacity-100 transition-opacity z-50 hover:scale-110"
+                                            >
+                                              <X size={8} />
+                                            </button>
+                                          </div>
+                                        </motion.div>
                                       </div>
-                                    </motion.div>
-                                  </div>
-                               )}
-                            </React.Fragment>
-                          );
-                        })}
+                                   )}
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     ) : activeSlide.isFixed ? (
                       <div className={`w-full h-full flex flex-col items-center justify-center text-center relative z-10 px-12 bg-white text-black`}>
