@@ -593,7 +593,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
                 <div className="bg-black border-t-2 border-black flex flex-col items-center justify-center px-6 md:px-12 shrink-0 relative py-4">
                    <textarea 
                       ref={narrativeRef}
-                      className="w-full max-w-4xl bg-transparent text-white font-serif italic text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40 min-h-[64px] flex items-center justify-center"
+                      className="w-full max-w-4xl bg-transparent text-white font-sans text-sm md:text-lg leading-relaxed text-center resize-none focus:outline-none overflow-hidden placeholder:text-white/40 min-h-[64px] flex items-center justify-center"
                       value={activeSlide.content || ''}
                       onChange={(e) => {
                         e.target.style.height = 'auto';
