@@ -362,50 +362,71 @@ function App() {
                    <ShieldCheck size={28} />
                    <h2 className="text-2xl font-serif font-black italic uppercase">Angel / VC Access</h2>
                 </div>
-                
-                <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Enter the access code provided by the founder:</p>
-                
-                <div className="space-y-4">
-                   <div className="relative">
-                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input 
-                         className="w-full bg-gray-50 border-2 border-black pl-12 pr-4 py-4 font-mono text-sm focus:bg-white outline-none" 
-                         placeholder="Your Name (e.g. VC Name)"
-                         value={visitorName}
-                         onChange={e => setVisitorName(e.target.value)}
-                      />
-                   </div>
-                   <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input 
-                         className="w-full bg-gray-50 border-2 border-black pl-12 pr-4 py-4 font-mono text-sm focus:bg-white outline-none" 
-                         placeholder="Your Email Address"
-                         value={visitorEmail}
-                         onChange={e => setVisitorEmail(e.target.value)}
-                      />
-                   </div>
-                   
-                   <div className="pt-4">
-                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Access PIN</label>
-                      <div className="flex gap-3">
-                         <input 
-                            className="w-full bg-white border-2 border-black px-4 py-4 text-xl font-mono font-bold tracking-[0.1em] uppercase outline-none focus:bg-gray-50"
-                            maxLength={8}
-                            placeholder="CODE"
-                            value={pin}
-                            onChange={e => setPin(e.target.value.toUpperCase())}
-                         />
-                         <button 
-                            onClick={handlePinJoin}
-                            disabled={joining || pin.length < 4}
-                            className="bg-black text-white px-6 py-4 hover:bg-gray-800 disabled:opacity-30 transition-all flex items-center justify-center shrink-0"
-                         >
-                            {joining ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <ArrowRight size={20} />}
-                         </button>
-                      </div>
-                      {error && <p className="text-red-600 font-mono text-[10px] uppercase font-bold text-center mt-4">{error}</p>}
-                   </div>
-                </div>
+                                <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Enter the credentials to view the presentation:</p>
+                 
+                 <div className="space-y-5">
+                    {/* PIN Code (Required) */}
+                    <div>
+                       <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Access PIN (Required)</label>
+                       <div className="relative">
+                          <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input 
+                             className="w-full bg-white border-2 border-black pl-12 pr-4 py-4 text-xl font-mono font-bold tracking-[0.1em] uppercase outline-none focus:bg-gray-50"
+                             maxLength={8}
+                             placeholder="ENTER PIN"
+                             value={pin}
+                             onChange={e => setPin(e.target.value.toUpperCase())}
+                          />
+                       </div>
+                    </div>
+
+                    {/* Visitor Info (Optional) */}
+                    <div className="space-y-3 pt-2 border-t border-dashed border-gray-300">
+                       <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-400">Visitor Info (Optional)</label>
+                       
+                       <div className="relative">
+                          <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input 
+                             className="w-full bg-gray-50 border-2 border-black pl-12 pr-4 py-4 font-mono text-sm focus:bg-white outline-none" 
+                             placeholder="Your Name (Optional)"
+                             value={visitorName}
+                             onChange={e => setVisitorName(e.target.value)}
+                          />
+                       </div>
+                       
+                       <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input 
+                             className="w-full bg-gray-50 border-2 border-black pl-12 pr-4 py-4 font-mono text-sm focus:bg-white outline-none" 
+                             placeholder="Your Email Address (Optional)"
+                             value={visitorEmail}
+                             onChange={e => setVisitorEmail(e.target.value)}
+                          />
+                       </div>
+                    </div>
+
+                    <p className="text-gray-400 font-mono text-[9px] uppercase tracking-wider text-center pt-1 leading-normal">
+                       * Name & Email are completely optional. You can enter with just the PIN code.
+                    </p>
+                    
+                    <div className="pt-2">
+                       <button 
+                          onClick={handlePinJoin}
+                          disabled={joining || pin.length < 4}
+                          className="w-full bg-black text-white py-4 font-serif font-black italic uppercase tracking-wider hover:bg-gray-800 disabled:opacity-30 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0_0_#ccc] active:translate-y-0.5 active:shadow-none"
+                       >
+                          {joining ? (
+                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          ) : (
+                             <>
+                                <span>Enter Pitch Room</span>
+                                <ArrowRight size={18} />
+                             </>
+                          )}
+                       </button>
+                       {error && <p className="text-red-600 font-mono text-[10px] uppercase font-bold text-center mt-4">{error}</p>}
+                    </div>
+                 </div>
              </div>
           </div>
         </div>
