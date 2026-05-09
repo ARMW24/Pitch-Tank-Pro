@@ -340,15 +340,13 @@ function App() {
                 * By entering, you agree that the deck owner will receive standard viewership analytics (such as time spent per slide) to customize further discussions.
              </p>
 
-             <div className="pt-4 text-center border-t border-gray-100">
-                <button onClick={() => {
-                   window.history.pushState({}, document.title, '/');
-                   setView('landing');
-                   setProjectToEdit(null);
-                }} className="text-[10px] font-mono text-gray-400 hover:text-black uppercase tracking-widest underline underline-offset-4 decoration-gray-300 hover:decoration-black transition-colors">
-                   Leave this room
-                </button>
-             </div>
+              <div className="pt-4 text-center border-t border-gray-100">
+                 <button onClick={() => {
+                    window.location.href = 'https://www.google.com';
+                 }} className="text-[10px] font-mono text-gray-400 hover:text-black uppercase tracking-widest underline underline-offset-4 decoration-gray-300 hover:decoration-black transition-colors">
+                    Leave this room
+                 </button>
+              </div>
           </div>
         </div>
       </div>
@@ -560,13 +558,13 @@ function App() {
                 <p className="text-xs font-mono text-gray-600 leading-relaxed mb-10 uppercase tracking-widest font-bold">
                   Your time and feedback are greatly appreciated. This secure session has been closed.
                 </p>
-                <button 
-                  onClick={async () => {
-                     if (user) {
-                       await handleSignOut();
-                     }
-                     window.location.href = '/';
-                  }}
+                 <button 
+                   onClick={async () => {
+                      if (user) {
+                        await handleSignOut();
+                      }
+                      window.location.href = 'https://www.google.com';
+                   }}
                   className="w-full bg-black text-white border-2 border-black p-4 font-mono font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
                 >
                   Exit Securely
