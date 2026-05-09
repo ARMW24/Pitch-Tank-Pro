@@ -16,6 +16,7 @@ interface PreviewRoomProps {
   visitorSessionId?: string | null;
   handleUndo?: () => void;
   handleRedo?: () => void;
+  onUpdateProject?: (id: string, updates: any, options?: { immediate?: boolean }) => void;
 }
 
 export const PreviewRoom: React.FC<PreviewRoomProps> = ({ 
@@ -25,16 +26,17 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   initialSid, 
   visitorSessionId,
   handleUndo,
-  handleRedo
+  handleRedo,
+  onUpdateProject
 }) => {
   if (!project) return null;
   const slides = project.slides || [];
   const [activeSid, setActiveSid] = useState(initialSid || slides[0]?.id);
   const [interactiveMode, setInteractiveMode] = useState(true);
   const [showAI, setShowAI] = useState(false);
-  const [showSubtitles, setShowSubtitles] = useState(true);
-  const [playAudio, setPlayAudio] = useState(true);
-  const [autoPlayNext, setAutoPlayNext] = useState(false);
+  const [showSubtitles, setShowSubtitles] = useState(project.defaultSubs !== undefined ? project.defaultSubs : true);
+  const [playAudio, setPlayAudio] = useState(project.defaultAudio !== undefined ? project.defaultAudio : true);
+  const [autoPlayNext, setAutoPlayNext] = useState(project.defaultAuto !== undefined ? project.defaultAuto : false);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [activeGallery, setActiveGallery] = useState<{images: string[], index: number} | null>(null);
   const [activeNote, setActiveNote] = useState<{title?: string, text: string} | null>(null);
@@ -42,7 +44,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [agentTyping, setAgentTyping] = useState(false);
   const [isFrameless, setIsFrameless] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(playAudio);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(project.defaultAudio !== undefined ? project.defaultAudio : true);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const [messages, setMessages] = useState([
@@ -340,15 +342,33 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
               
               <div className="bg-white border-2 border-black flex items-center px-3 md:px-4 gap-3 md:gap-4 shrink-0 h-9 md:h-10">
                 <label className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <input type="checkbox" checked={playAudio} onChange={e => setPlayAudio(e.target.checked)} className="accent-black w-3.5 h-3.5" />
+                  <input type="checkbox" checked={playAudio} onChange={e => {
+                    const val = e.target.checked;
+                    setPlayAudio(val);
+                    if (!visitorSessionId && onUpdateProject) {
+                      onUpdateProject(project.id, { defaultAudio: val }, { immediate: true });
+                    }
+                  }} className="accent-black w-3.5 h-3.5" />
                   <span className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest pt-0.5">Audio</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <input type="checkbox" checked={autoPlayNext} onChange={e => setAutoPlayNext(e.target.checked)} className="accent-black w-3.5 h-3.5" />
+                  <input type="checkbox" checked={autoPlayNext} onChange={e => {
+                    const val = e.target.checked;
+                    setAutoPlayNext(val);
+                    if (!visitorSessionId && onUpdateProject) {
+                      onUpdateProject(project.id, { defaultAuto: val }, { immediate: true });
+                    }
+                  }} className="accent-black w-3.5 h-3.5" />
                   <span className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest pt-0.5">Auto</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <input type="checkbox" checked={showSubtitles} onChange={e => setShowSubtitles(e.target.checked)} className="accent-black w-3.5 h-3.5" />
+                  <input type="checkbox" checked={showSubtitles} onChange={e => {
+                    const val = e.target.checked;
+                    setShowSubtitles(val);
+                    if (!visitorSessionId && onUpdateProject) {
+                      onUpdateProject(project.id, { defaultSubs: val }, { immediate: true });
+                    }
+                  }} className="accent-black w-3.5 h-3.5" />
                   <span className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-widest pt-0.5">Subs</span>
                 </label>
               </div>

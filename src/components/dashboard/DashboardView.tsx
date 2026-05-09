@@ -15,7 +15,7 @@ interface DashboardViewProps {
   onPreviewProject: (projectId: string) => void;
   findProjectByPin: (pin: string) => Promise<string | null>;
   onLogout: () => void;
-  onUpdateProject: (projectId: string, updates: any) => void;
+  onUpdateProject: (projectId: string, updates: any, options?: { immediate?: boolean }) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -182,7 +182,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              onUpdateProject(project.id, { scheduleEnabled: true });
+                              onUpdateProject(project.id, { scheduleEnabled: true }, { immediate: true });
                             }}
                             className={`px-2.5 py-0.5 font-mono font-black text-[9px] uppercase transition-colors ${project.scheduleEnabled ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'}`}
                           >
@@ -191,7 +191,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              onUpdateProject(project.id, { scheduleEnabled: false });
+                              onUpdateProject(project.id, { scheduleEnabled: false }, { immediate: true });
                             }}
                             className={`px-2.5 py-0.5 font-mono font-black text-[9px] uppercase transition-colors border-l border-black/10 ${!project.scheduleEnabled ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'}`}
                           >
@@ -207,7 +207,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             type="datetime-local"
                             value={project.scheduleStart || ""}
                             onChange={(e) => {
-                              onUpdateProject(project.id, { scheduleStart: e.target.value });
+                              onUpdateProject(project.id, { scheduleStart: e.target.value }, { immediate: true });
                             }}
                             onClick={(e) => e.stopPropagation()}
                             className="border-2 border-black px-1.5 py-1 text-[9px] font-mono bg-white outline-none w-full shadow-[2px_2px_0_0_#000] focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all"
@@ -219,7 +219,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             type="datetime-local"
                             value={project.scheduleEnd || ""}
                             onChange={(e) => {
-                              onUpdateProject(project.id, { scheduleEnd: e.target.value });
+                              onUpdateProject(project.id, { scheduleEnd: e.target.value }, { immediate: true });
                             }}
                             onClick={(e) => e.stopPropagation()}
                             className="border-2 border-black px-1.5 py-1 text-[9px] font-mono bg-white outline-none w-full shadow-[2px_2px_0_0_#000] focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all"

@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { Cpu, X, FileText, Trash2, ShieldCheck, Key, MessageSquare } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 
+import * as pdfjsLib from 'pdfjs-dist';
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
 interface AIKnowledgeModalProps {
   isOpen: boolean;
   project: Project | null;
@@ -40,6 +43,22 @@ export const AIKnowledgeModal: React.FC<AIKnowledgeModalProps> = ({ isOpen, proj
         let content = "File uploaded but content unparsed.";
         if (f.type.includes('text') || f.name.endsWith('.txt')) {
              content = await f.text();
+        } else if (f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf') {
+          try {
+            const arrayBuffer = await f.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map((item: any) => (item as any).str).join(' ');
+              fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+            }
+            content = fullText;
+          } catch (err: any) {
+            console.error("PDF text extraction failed:", err);
+            content = "PDF file uploaded, but text extraction failed: " + err.message;
+          }
         }
         return {
           name: f.name,

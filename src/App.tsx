@@ -613,6 +613,7 @@ function App() {
                }}
                handleUndo={handleUndo}
                handleRedo={handleRedo}
+               onUpdateProject={updateProject}
             />
          )}
       </main>
