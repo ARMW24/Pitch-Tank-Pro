@@ -395,7 +395,16 @@ function App() {
               onNewProject={() => setIsNewProjectModalOpen(true)}
               onCopyProject={async (p) => {
                 const pin = generateSecurePin();
-                const newProj = await createProject(`${p.name} (Copy)`, pin, p.slides);
+                const copiedFiles = (p.aiKnowledgeFiles || []).map(file => {
+                  if (file.type === 'settings') {
+                    return {
+                      ...file,
+                      apiKey: '' // Clear the API key for security/privacy as requested
+                    };
+                  }
+                  return file;
+                });
+                const newProj = await createProject(`${p.name} (Copy)`, pin, p.slides, copiedFiles);
                 if (newProj) {
                   setActivePid(newProj.id);
                   setView('editor');

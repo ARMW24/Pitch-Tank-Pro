@@ -72,7 +72,7 @@ export function useProjects(user: User | null) {
     fetchProjects();
   }, [user]);
 
-  const createProject = async (name: string, pinCode: string, initialSlides: any[]) => {
+  const createProject = async (name: string, pinCode: string, initialSlides: any[], aiKnowledgeFiles?: any[]) => {
     if (!user) return null;
 
     const { data, error } = await supabase
@@ -83,6 +83,7 @@ export function useProjects(user: User | null) {
           user_id: user.id,
           pin_code: pinCode,
           slides: initialSlides,
+          ai_knowledge_files: aiKnowledgeFiles || [],
         },
       ])
       .select()
