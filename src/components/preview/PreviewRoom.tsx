@@ -220,7 +220,9 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
       supabase.from('sessions').update({
         time_spent: timeSpent,
         last_ping: new Date().toISOString()
-      }).eq('id', visitorSessionId).then();
+      }).eq('id', visitorSessionId).then(({ error }) => {
+        if (error) console.error("Session update failed:", error);
+      });
     }, 10000);
 
     return () => clearInterval(interval);
