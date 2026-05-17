@@ -223,15 +223,12 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
         time_spent: timeSpentSecs,
         last_ping: new Date().toISOString()
       }).eq('id', visitorSessionId)
-        .select() // Force select to trigger RLS error if update is blocked
-        .then(({ data, error }) => {
+        .then(({ error }) => {
           if (error) {
              console.error("Session update failed:", error);
-             setTrackingError("Database Update Blocked: " + error.message);
-          } else if (!data || data.length === 0) {
-             setTrackingError("Database Update Blocked: RLS Policy prevents updating.");
+             setTrackingError("Database Error: " + error.message);
           } else {
-             setTrackingError(null); // Clear error if successful
+             setTrackingError(null);
           }
       });
     }, 5000);
