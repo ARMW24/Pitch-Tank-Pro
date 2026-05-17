@@ -214,18 +214,26 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
   useEffect(() => {
     if (!visitorSessionId) return;
     
-    let timeSpent = 0;
+    const startTime = Date.now();
     const interval = setInterval(() => {
-      timeSpent += 10;
+      const timeSpentSecs = Math.floor((Date.now() - startTime) / 1000);
       supabase.from('sessions').update({
-        time_spent: timeSpent,
+        time_spent: timeSpentSecs,
         last_ping: new Date().toISOString()
       }).eq('id', visitorSessionId).then(({ error }) => {
         if (error) console.error("Session update failed:", error);
       });
-    }, 10000);
+    }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      const finalTime = Math.floor((Date.now() - startTime) / 1000);
+      // Attempt final update on cleanup
+      supabase.from('sessions').update({
+        time_spent: finalTime,
+        last_ping: new Date().toISOString()
+      }).eq('id', visitorSessionId).then();
+    };
   }, [visitorSessionId]);
 
 
