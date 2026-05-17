@@ -219,16 +219,16 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
     const startTime = Date.now();
     const interval = setInterval(() => {
       const timeSpentSecs = Math.floor((Date.now() - startTime) / 1000);
-      supabase.from('sessions').update({
-        time_spent: timeSpentSecs,
-        last_ping: new Date().toISOString()
-      }).eq('id', visitorSessionId)
-        .then(({ error }) => {
+      supabase.rpc('update_session_time', {
+        p_session_id: visitorSessionId,
+        p_time_spent: timeSpentSecs
+      }).then(({ error }) => {
           if (error) {
-             console.error("Session update failed:", error);
-             setTrackingError("Database Error: " + error.message);
-          } else {
-             setTrackingError(null);
+             // Fallback for backward compatibility if RPC doesn't exist yet
+             supabase.from('sessions').update({
+               time_spent: timeSpentSecs,
+               last_ping: new Date().toISOString()
+             }).eq('id', visitorSessionId).then();
           }
       });
     }, 5000);
@@ -236,10 +236,17 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
     return () => {
       clearInterval(interval);
       const finalTime = Math.floor((Date.now() - startTime) / 1000);
-      supabase.from('sessions').update({
-        time_spent: finalTime,
-        last_ping: new Date().toISOString()
-      }).eq('id', visitorSessionId).then();
+      supabase.rpc('update_session_time', {
+        p_session_id: visitorSessionId,
+        p_time_spent: finalTime
+      }).then(({ error }) => {
+        if (error) {
+           supabase.from('sessions').update({
+             time_spent: finalTime,
+             last_ping: new Date().toISOString()
+           }).eq('id', visitorSessionId).then();
+        }
+      });
     };
   }, [visitorSessionId]);
 
