@@ -587,17 +587,11 @@ function App() {
                project={activeProject}
                onBack={() => {
                  if (visitorSessionId) {
-                   setView('thank_you');
-                   setProjectToEdit(null);
-                   setVisitorSessionId(null);
-                   window.history.replaceState({}, document.title, '/');
+                   window.location.href = 'https://www.vtacmanager.com';
                  } else if (user) {
                    setView('editor');
                  } else {
-                   setView('landing');
-                   setProjectToEdit(null);
-                   setVisitorSessionId(null);
-                   window.history.replaceState({}, document.title, '/');
+                   window.location.href = 'https://www.vtacmanager.com';
                  }
                }}
                initialSid={activeSid}
