@@ -211,6 +211,8 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
     }
   };
 
+  const [trackingError, setTrackingError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!visitorSessionId) return;
     
@@ -220,15 +222,23 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
       supabase.from('sessions').update({
         time_spent: timeSpentSecs,
         last_ping: new Date().toISOString()
-      }).eq('id', visitorSessionId).then(({ error }) => {
-        if (error) console.error("Session update failed:", error);
+      }).eq('id', visitorSessionId)
+        .select() // Force select to trigger RLS error if update is blocked
+        .then(({ data, error }) => {
+          if (error) {
+             console.error("Session update failed:", error);
+             setTrackingError("Database Update Blocked: " + error.message);
+          } else if (!data || data.length === 0) {
+             setTrackingError("Database Update Blocked: RLS Policy prevents updating.");
+          } else {
+             setTrackingError(null); // Clear error if successful
+          }
       });
     }, 5000);
 
     return () => {
       clearInterval(interval);
       const finalTime = Math.floor((Date.now() - startTime) / 1000);
-      // Attempt final update on cleanup
       supabase.from('sessions').update({
         time_spent: finalTime,
         last_ping: new Date().toISOString()
@@ -326,6 +336,11 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
 
   return (
     <div className={`flex-1 bg-[#F4F4F1] text-black flex flex-col relative h-full overflow-hidden min-h-0 min-w-0`}>
+      {trackingError && (
+        <div className="absolute top-0 left-0 right-0 z-50 bg-red-600 text-white p-4 font-mono text-sm text-center font-bold">
+          {trackingError} (Please check Supabase RLS Policy)
+        </div>
+      )}
       {!isFrameless && <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>}
       
       {!isFrameless && (
