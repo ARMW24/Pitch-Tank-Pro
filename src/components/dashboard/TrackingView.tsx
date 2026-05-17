@@ -11,8 +11,8 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ projects }) => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-     const fetchSessions = async () => {
-        setLoading(true);
+     const fetchSessions = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
            const allSessions: any[] = [];
            for (const p of projects) {
@@ -41,6 +41,12 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ projects }) => {
      };
 
      fetchSessions();
+
+     const interval = setInterval(() => {
+       fetchSessions(false); // Pass a flag to not show loading spinner on background refresh
+     }, 5000);
+
+     return () => clearInterval(interval);
   }, [projects]);
 
   return (
