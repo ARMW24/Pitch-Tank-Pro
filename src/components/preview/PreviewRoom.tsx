@@ -353,7 +353,7 @@ export const PreviewRoom: React.FC<PreviewRoomProps> = ({
             <div className="w-8 h-8 md:w-10 md:h-10 bg-black text-white border-2 border-black flex items-center justify-center font-bold text-xs md:text-sm font-serif shrink-0">PT</div>
             <div className="hidden sm:block">
               <h3 className="font-sans font-black text-lg md:text-xl uppercase tracking-tighter leading-none truncate">{project.name}</h3>
-              <p className="text-gray-500 text-[9px] md:text-[10px] font-mono mt-1 tracking-widest uppercase">NDA Active • Restricted</p>
+              <p className="text-gray-500 text-[9px] md:text-[10px] font-mono mt-1 tracking-widest uppercase">Confidential Document</p>
             </div>
           </div>
 

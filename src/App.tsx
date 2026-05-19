@@ -92,7 +92,13 @@ function App() {
     getProject
   } = useProjects(user);
 
-  const [view, setView] = useState<'landing' | 'dashboard' | 'editor' | 'tracking' | 'preview' | 'visitor_auth'>('landing');
+  const [view, setView] = useState<'landing' | 'dashboard' | 'editor' | 'tracking' | 'preview' | 'visitor_auth'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('room')) return 'visitor_auth';
+    }
+    return 'landing';
+  });
   const [activePid, setActivePid] = useState<string | null>(null);
   const [activeSid, setActiveSid] = useState<string | number | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -179,6 +185,8 @@ function App() {
       setProjectToEdit(project);
       setActivePid(pid);
       setView('visitor_auth');
+    } else {
+      setView('landing');
     }
   };
 
@@ -260,6 +268,18 @@ function App() {
     );
   }
 
+
+  if (view === 'visitor_auth' && !projectToEdit) {
+    return (
+      <div className="min-h-screen bg-[#F4F4F1] flex flex-col items-center justify-center relative p-6">
+        <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
+        <div className="max-w-md w-full bg-white border-4 border-black p-8 md:p-12 shadow-[16px_16px_0_0_#000] relative z-10 flex flex-col items-center justify-center gap-4">
+          <div className="w-8 h-8 border-4 border-black border-t-transparent animate-spin"></div>
+          <p className="font-mono text-[10px] uppercase font-bold tracking-widest text-gray-500">Preparing Pitch Room...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (view === 'visitor_auth' && projectToEdit) {
     return (
