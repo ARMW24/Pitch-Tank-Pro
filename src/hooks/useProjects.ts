@@ -17,6 +17,7 @@ export interface Project {
   defaultAudio?: boolean;
   defaultAuto?: boolean;
   defaultSubs?: boolean;
+  accessCodeRequired?: boolean;
 }
 
 const transformProject = (data: any): Project => {
@@ -39,6 +40,7 @@ const transformProject = (data: any): Project => {
     defaultAudio: meta.defaultAudio !== undefined ? meta.defaultAudio : true,
     defaultAuto: meta.defaultAuto !== undefined ? meta.defaultAuto : false,
     defaultSubs: meta.defaultSubs !== undefined ? meta.defaultSubs : true,
+    accessCodeRequired: meta.accessCodeRequired !== undefined ? meta.accessCodeRequired : true,
   };
 };
 
@@ -158,6 +160,7 @@ export function useProjects(user: User | null) {
       const currentDefaultAudio = updates.defaultAudio !== undefined ? updates.defaultAudio : (proj.defaultAudio !== undefined ? proj.defaultAudio : true);
       const currentDefaultAuto = updates.defaultAuto !== undefined ? updates.defaultAuto : (proj.defaultAuto !== undefined ? proj.defaultAuto : false);
       const currentDefaultSubs = updates.defaultSubs !== undefined ? updates.defaultSubs : (proj.defaultSubs !== undefined ? proj.defaultSubs : true);
+      const currentAccessCodeRequired = updates.accessCodeRequired !== undefined ? updates.accessCodeRequired : (proj.accessCodeRequired !== undefined ? proj.accessCodeRequired : true);
       
       const cleanSlides = (updates.slides !== undefined ? updates.slides : (proj.slides || [])).filter((s: any) => s.isScheduleMeta !== true);
       
@@ -168,7 +171,8 @@ export function useProjects(user: User | null) {
         scheduleEnd: currentScheduleEnd,
         defaultAudio: currentDefaultAudio,
         defaultAuto: currentDefaultAuto,
-        defaultSubs: currentDefaultSubs
+        defaultSubs: currentDefaultSubs,
+        accessCodeRequired: currentAccessCodeRequired
       };
 
       finalUpdates.slides = [...cleanSlides, metaSlide];

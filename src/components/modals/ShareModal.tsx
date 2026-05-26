@@ -7,9 +7,10 @@ interface ShareModalProps {
   isOpen: boolean;
   project: Project | null;
   onCancel: () => void;
+  onUpdateProject?: (id: string, updates: any) => Promise<boolean>;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCancel }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCancel, onUpdateProject }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
 
@@ -41,6 +42,29 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCance
                 </button>
              </div>
            </div>
+
+           {onUpdateProject && (
+             <div className="pt-2 border-t border-dashed border-gray-200">
+               <label className="flex items-center justify-between p-3 border-2 border-black bg-[#F4F4F1] hover:bg-gray-50 transition-colors cursor-pointer select-none">
+                 <div className="flex flex-col">
+                   <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-black">Require Access Code</span>
+                   <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
+                     {project.accessCodeRequired !== false ? 'PIN is required to view' : 'Bypass PIN for direct entry'}
+                   </span>
+                 </div>
+                 <div className="relative shrink-0">
+                   <input 
+                     type="checkbox" 
+                     checked={project.accessCodeRequired !== false} 
+                     onChange={(e) => onUpdateProject(project.id, { accessCodeRequired: e.target.checked })}
+                     className="sr-only peer" 
+                   />
+                   <div className="w-10 h-6 bg-gray-200 border-2 border-black rounded-none transition-colors peer-checked:bg-black"></div>
+                   <div className="absolute top-1 left-1 w-4 h-4 bg-white border-2 border-black rounded-none transition-transform peer-checked:translate-x-4"></div>
+                 </div>
+               </label>
+             </div>
+           )}
         </div>
         
         <button onClick={onCancel} className="mt-8 font-mono font-bold text-xs uppercase tracking-widest py-3 border-2 border-black hover:bg-black hover:text-white transition-colors">Done</button>

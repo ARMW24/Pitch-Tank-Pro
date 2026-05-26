@@ -191,19 +191,29 @@ function App() {
   };
 
   const handlePinJoin = async () => {
-    if (!pin.trim()) return;
+    const isPinRequired = !projectToEdit || projectToEdit.accessCodeRequired !== false;
+    if (isPinRequired && !pin.trim()) return;
     setJoining(true);
     setError('');
     
     try {
-      const project = await findProjectByPin(pin.toUpperCase());
-      if (project) {
+      let project = projectToEdit;
+      
+      if (isPinRequired) {
+        project = await findProjectByPin(pin.toUpperCase());
+        if (!project) {
+          setError('Invalid Access Code');
+          setJoining(false);
+          return;
+        }
         if (projectToEdit && projectToEdit.id !== project.id) {
            setError('Invalid Access Code for this room');
            setJoining(false);
            return;
         }
-        
+      }
+      
+      if (project) {
         const sessId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).substring(2));
         // Record session asynchronously
         supabase.from('sessions').insert({
@@ -222,7 +232,7 @@ function App() {
         setActivePid(project.id);
         setView('preview');
       } else {
-        setError('Invalid Access Code');
+        setError('Invalid Room Access');
       }
     } catch (err) {
       setError('Connection failed. Try again.');
@@ -294,19 +304,21 @@ function App() {
 
           <div className="w-full space-y-5 text-left">
              {/* PIN Code (Required) */}
-             <div>
-                <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Access PIN (Required)</label>
-                <div className="relative">
-                   <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                   <input 
-                      className="w-full bg-white border-2 border-black pl-12 pr-4 py-4 text-xl font-mono font-bold tracking-[0.1em] uppercase outline-none focus:bg-gray-50"
-                      maxLength={8}
-                      placeholder="ENTER PIN"
-                      value={pin}
-                      onChange={e => setPin(e.target.value.toUpperCase())}
-                   />
+             {projectToEdit.accessCodeRequired !== false && (
+                <div>
+                   <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500 mb-2">Access PIN (Required)</label>
+                   <div className="relative">
+                      <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <input 
+                         className="w-full bg-white border-2 border-black pl-12 pr-4 py-4 text-xl font-mono font-bold tracking-[0.1em] uppercase outline-none focus:bg-gray-50"
+                         maxLength={8}
+                         placeholder="ENTER PIN"
+                         value={pin}
+                         onChange={e => setPin(e.target.value.toUpperCase())}
+                      />
+                   </div>
                 </div>
-             </div>
+             )}
 
              {/* Visitor Info (Optional) */}
              <div className="space-y-3 pt-2 border-t border-dashed border-gray-300">
@@ -334,7 +346,9 @@ function App() {
              </div>
 
              <p className="text-gray-400 font-mono text-[9px] uppercase tracking-wider text-center pt-1 leading-normal">
-                * Name & Email are completely optional. You can enter with just the PIN code.
+                {projectToEdit.accessCodeRequired !== false 
+                  ? "* Name & Email are completely optional. You can enter with just the PIN code."
+                  : "* Name & Email are completely optional. You can enter directly."}
              </p>
 
              {error && <p className="text-red-600 font-mono text-[10px] uppercase font-bold text-center mt-2">{error}</p>}
@@ -342,7 +356,7 @@ function App() {
              <div className="pt-2">
                 <button 
                    onClick={handlePinJoin}
-                   disabled={joining || pin.length < 4}
+                   disabled={joining || (projectToEdit.accessCodeRequired !== false && pin.length < 4)}
                    className="w-full bg-black text-white py-4 font-serif font-black italic uppercase tracking-wider hover:bg-gray-800 disabled:opacity-30 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0_0_#ccc] active:translate-y-0.5 active:shadow-none"
                 >
                    {joining ? (
@@ -452,7 +466,7 @@ function App() {
                activeSid={activeSid}
                setActiveSid={setActiveSid}
                isSidebarOpen={isSidebarExpanded}
-               setIsSidebarOpen={setIsSidebarExpanded}
+               setIsSidebarOpen={isSidebarExpanded}
                setView={setView}
                setModal={(m) => {
                  setProjectToEdit(activeProject);
@@ -650,6 +664,7 @@ function App() {
         isOpen={isShareModalOpen} 
         project={projectToEdit} 
         onCancel={() => setIsShareModalOpen(false)} 
+        onUpdateProject={updateProject}
       />
       
       <ConfirmationModal 
