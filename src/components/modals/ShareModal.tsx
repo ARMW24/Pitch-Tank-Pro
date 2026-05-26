@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Copy, X } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
@@ -13,10 +13,24 @@ interface ShareModalProps {
 export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCancel, onUpdateProject }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [localAccessCodeRequired, setLocalAccessCodeRequired] = useState(true);
+
+  useEffect(() => {
+    if (project) {
+      setLocalAccessCodeRequired(project.accessCodeRequired !== false);
+    }
+  }, [project]);
 
   if (!isOpen || !project) return null;
   const url = window.location.origin + window.location.pathname + '?room=' + project.id;
   
+  const handleToggle = async (checked: boolean) => {
+    setLocalAccessCodeRequired(checked);
+    if (onUpdateProject) {
+      await onUpdateProject(project.id, { accessCodeRequired: checked });
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-[#F4F4F1]/90 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white border-2 border-black p-10 max-w-sm w-full shadow-[8px_8px_0_0_#000] rounded-none flex flex-col">
@@ -49,18 +63,23 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCance
                  <div className="flex flex-col">
                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-black">Require Access Code</span>
                    <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
-                     {project.accessCodeRequired !== false ? 'PIN is required to view' : 'Bypass PIN for direct entry'}
+                     {localAccessCodeRequired ? 'PIN is required to view' : 'Bypass PIN for direct entry'}
                    </span>
                  </div>
-                 <div className="relative shrink-0">
-                   <input 
-                     type="checkbox" 
-                     checked={project.accessCodeRequired !== false} 
-                     onChange={(e) => onUpdateProject(project.id, { accessCodeRequired: e.target.checked })}
-                     className="sr-only peer" 
-                   />
-                   <div className="w-10 h-6 bg-gray-200 border-2 border-black rounded-none transition-colors peer-checked:bg-black"></div>
-                   <div className="absolute top-1 left-1 w-4 h-4 bg-white border-2 border-black rounded-none transition-transform peer-checked:translate-x-4"></div>
+                 <div className="flex items-center gap-2 shrink-0">
+                   <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 border border-black uppercase tracking-widest transition-colors ${localAccessCodeRequired ? 'bg-black text-white' : 'bg-white text-black'}`}>
+                     {localAccessCodeRequired ? 'ON' : 'OFF'}
+                   </span>
+                   <div className="relative">
+                     <input 
+                       type="checkbox" 
+                       checked={localAccessCodeRequired} 
+                       onChange={(e) => handleToggle(e.target.checked)}
+                       className="sr-only" 
+                     />
+                     <div className={`w-10 h-6 border-2 border-black rounded-none transition-colors duration-200 ${localAccessCodeRequired ? 'bg-black' : 'bg-gray-200'}`}></div>
+                     <div className={`absolute top-1 left-1 w-4 h-4 bg-white border-2 border-black rounded-none transition-transform duration-200 ${localAccessCodeRequired ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                   </div>
                  </div>
                </label>
              </div>
