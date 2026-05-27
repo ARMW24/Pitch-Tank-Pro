@@ -376,7 +376,7 @@ function App() {
 
               <div className="pt-4 text-center border-t border-gray-100">
                  <button onClick={() => {
-                    window.location.href = 'https://www.vtacmanager.com';
+                    window.location.href = 'https://www.vtacmanager.com/football';
                  }} className="text-[10px] font-mono text-gray-400 hover:text-black uppercase tracking-widest underline underline-offset-4 decoration-gray-300 hover:decoration-black transition-colors">
                     Leave this room
                  </button>
@@ -606,7 +606,7 @@ function App() {
                       if (user) {
                         await handleSignOut();
                       }
-                      window.location.href = 'https://www.vtacmanager.com';
+                      window.location.href = 'https://www.vtacmanager.com/football';
                    }}
                   className="w-full bg-black text-white border-2 border-black p-4 font-mono font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
                 >
@@ -621,11 +621,11 @@ function App() {
                project={activeProject}
                onBack={() => {
                  if (visitorSessionId) {
-                   window.location.href = 'https://www.vtacmanager.com';
+                   window.location.href = 'https://www.vtacmanager.com/football';
                  } else if (user) {
                    setView('editor');
                  } else {
-                   window.location.href = 'https://www.vtacmanager.com';
+                   window.location.href = 'https://www.vtacmanager.com/football';
                  }
                }}
                initialSid={activeSid}
