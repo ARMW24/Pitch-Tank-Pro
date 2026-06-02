@@ -466,7 +466,7 @@ function App() {
                activeSid={activeSid}
                setActiveSid={setActiveSid}
                isSidebarOpen={isSidebarExpanded}
-               setIsSidebarOpen={isSidebarExpanded}
+               setIsSidebarOpen={setIsSidebarExpanded}
                setView={setView}
                setModal={(m) => {
                  setProjectToEdit(activeProject);
