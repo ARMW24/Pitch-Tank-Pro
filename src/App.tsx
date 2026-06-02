@@ -484,6 +484,15 @@ function App() {
                  captureHistory(activeProject.slides);
                  const newSlides = activeProject.slides.filter(s => s.id !== sid);
                  updateProject(activeProject.id, { slides: newSlides });
+                 if (activeSid === sid) {
+                   const deletedIdx = activeProject.slides.findIndex(s => s.id === sid);
+                   if (newSlides.length > 0) {
+                     const nextActiveIdx = Math.min(deletedIdx, newSlides.length - 1);
+                     setActiveSid(newSlides[nextActiveIdx].id);
+                   } else {
+                     setActiveSid(null);
+                   }
+                 }
                }}
                onDragStart={(idx) => { draggedIdxRef.current = idx; }}
                onDragOver={(e) => { e.preventDefault(); }}
@@ -585,6 +594,7 @@ function App() {
                user={user}
                audioInputRef={audioInputRef}
                onLogout={handleSignOut}
+               onUpdateProject={updateProject}
             />
          )}
 

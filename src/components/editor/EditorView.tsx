@@ -31,6 +31,7 @@ interface EditorViewProps {
   handleAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   audioInputRef: React.RefObject<HTMLInputElement>;
   onLogout: () => void;
+  onUpdateProject?: (id: string, updates: any) => Promise<boolean>;
 }
 
 export const EditorView: React.FC<EditorViewProps> = ({
@@ -53,7 +54,8 @@ export const EditorView: React.FC<EditorViewProps> = ({
   user,
   handleAudioUpload,
   audioInputRef,
-  onLogout
+  onLogout,
+  onUpdateProject
 }) => {
   const { slides = [] } = project;
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -257,6 +259,43 @@ export const EditorView: React.FC<EditorViewProps> = ({
     } finally {
       setIsUploadingAudio(false);
       if (e.target) e.target.value = '';
+    }
+  };
+
+  const restoreFixedSlide = (type: 'founder-note' | 'vc-feedback') => {
+    captureHistory();
+    const newSlides = [...slides];
+    const newSlide = type === 'founder-note' ? {
+      id: 'founder-note', 
+      title: "Founder Note", 
+      content: "Founder's internal notes...", 
+      imageUrl: null, 
+      showNarrative: true, 
+      appendix: {}, 
+      isFixed: true 
+    } : {
+      id: 'vc-feedback', 
+      title: "Angel/VC Feedback", 
+      content: "VCs can leave feedback here...", 
+      imageUrl: null, 
+      showNarrative: true, 
+      appendix: {}, 
+      isFixed: true 
+    };
+
+    if (type === 'founder-note') {
+      const vcIdx = newSlides.findIndex((s: any) => s.id === 'vc-feedback');
+      if (vcIdx !== -1) {
+        newSlides.splice(vcIdx, 0, newSlide);
+      } else {
+        newSlides.push(newSlide);
+      }
+    } else {
+      newSlides.push(newSlide);
+    }
+
+    if (onUpdateProject) {
+      onUpdateProject(project.id, { slides: newSlides });
     }
   };
 
@@ -653,6 +692,26 @@ export const EditorView: React.FC<EditorViewProps> = ({
                  <input type="file" multiple accept="image/*,application/pdf" className="hidden" onChange={handleFileUpload} />
               </label>
 
+              {!slides.some((s: any) => s.id === 'founder-note') && (
+                <button 
+                  onClick={() => restoreFixedSlide('founder-note')}
+                  className="shrink-0 flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-amber-600/30 hover:border-amber-600 hover:bg-amber-50/50 cursor-pointer transition-all gap-2 group bg-white shadow-[4px_4px_0_0_rgba(0,0,0,0.05)] hover:shadow-[4px_4px_0_0_#d97706]"
+                >
+                  <div className="bg-amber-600 text-white p-2 group-hover:scale-110 transition-transform"><Plus size={16}/></div>
+                  <span className="text-[8px] font-mono font-bold text-amber-800 uppercase tracking-widest text-center leading-tight px-1">Restore Note</span>
+                </button>
+              )}
+
+              {!slides.some((s: any) => s.id === 'vc-feedback') && (
+                <button 
+                  onClick={() => restoreFixedSlide('vc-feedback')}
+                  className="shrink-0 flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-emerald-600/30 hover:border-emerald-600 hover:bg-emerald-50/50 cursor-pointer transition-all gap-2 group bg-white shadow-[4px_4px_0_0_rgba(0,0,0,0.05)] hover:shadow-[4px_4px_0_0_#059669]"
+                >
+                  <div className="bg-emerald-600 text-white p-2 group-hover:scale-110 transition-transform"><Plus size={16}/></div>
+                  <span className="text-[8px] font-mono font-bold text-emerald-800 uppercase tracking-widest text-center leading-tight px-1">Restore Feedback</span>
+                </button>
+              )}
+
               {slides.map((s: any, idx: number) => (
                 <div 
                   key={s.id}
@@ -672,14 +731,14 @@ export const EditorView: React.FC<EditorViewProps> = ({
                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-white/90 backdrop-blur-sm border-t border-black/10">
                       <p className="text-[8px] font-mono font-bold uppercase tracking-tighter truncate">{s.title}</p>
                    </div>
-                   {!s.isFixed && (
-                     <button 
-                       onClick={(e) => { e.stopPropagation(); deleteSlide(s.id); }}
-                       className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full border border-black opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
-                     >
-                       <X size={10} />
-                     </button>
-                   )}
+                    {(!s.isFixed || s.id === 'founder-note' || s.id === 'vc-feedback') && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); deleteSlide(s.id); }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full border border-black opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                      >
+                        <X size={10} />
+                      </button>
+                    )}
                    {s.isFixed && (
                       <div className="absolute top-1 left-1"><ShieldCheck size={10} className="text-black/30" /></div>
                    )}
