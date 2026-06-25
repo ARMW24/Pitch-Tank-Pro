@@ -102,6 +102,18 @@ function App() {
   const [activePid, setActivePid] = useState<string | null>(null);
   const [activeSid, setActiveSid] = useState<string | number | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [unauthorizedEmail, setUnauthorizedEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleUnauthorized = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setUnauthorizedEmail(customEvent.detail);
+    };
+
+    window.addEventListener('auth-unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth-unauthorized', handleUnauthorized);
+  }, []);
+
   
   // Modals state
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -402,16 +414,41 @@ function App() {
               The world's first <span className="font-bold underline decoration-2">Interactive Pitch</span>
            </p>
 
-           <div className="pt-4 flex flex-col items-center gap-4">
-              <button 
-                 onClick={() => signInWithGoogle().catch(err => alert("Login Error: " + err.message + "\n\nPlease ensure your Vercel URL is added to Supabase Redirect URLs."))}
-                 className="w-full bg-white border-2 border-black py-5 px-6 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
-              >
-                 <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
-                 <span className="font-mono font-black text-sm uppercase tracking-widest">Sign in with Google</span>
-              </button>
-              <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Founders Only • Private Room Management</p>
-           </div>
+            {unauthorizedEmail ? (
+               <div className="space-y-6">
+                  <div className="border-4 border-red-600 bg-red-50 p-6 shadow-[8px_8px_0_0_#DC2626] text-left">
+                     <h2 className="font-mono font-black text-red-600 text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
+                        🚫 Unauthorized Access
+                     </h2>
+                     <p className="text-xs font-mono text-gray-700 uppercase leading-relaxed">
+                        ขออภัย อีเมล <span className="font-bold underline text-black">{unauthorizedEmail}</span> ไม่ได้รับสิทธิ์ให้เข้าใช้งานระบบ Founder Portal
+                     </p>
+                     <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wide mt-4">
+                        * กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์การเข้าถึง
+                     </p>
+                  </div>
+                  <button 
+                     onClick={() => setUnauthorizedEmail(null)}
+                     className="w-full bg-black text-white border-2 border-black py-4 px-6 flex items-center justify-center gap-2 hover:bg-gray-800 transition-all font-mono font-bold text-xs uppercase tracking-widest shadow-[4px_4px_0_0_#ccc] active:translate-y-0.5 active:shadow-none"
+                  >
+                     <span>Try Another Account</span>
+                  </button>
+               </div>
+            ) : (
+               <div className="pt-4 flex flex-col items-center gap-4">
+                  <button 
+                     onClick={() => {
+                        setUnauthorizedEmail(null);
+                        signInWithGoogle().catch(err => alert("Login Error: " + err.message + "\n\nPlease ensure your Vercel URL is added to Supabase Redirect URLs."));
+                     }}
+                     className="w-full bg-white border-2 border-black py-5 px-6 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group shadow-[8px_8px_0_0_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+                  >
+                     <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" /> 
+                     <span className="font-mono font-black text-sm uppercase tracking-widest">Sign in with Google</span>
+                  </button>
+                  <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Founders Only • Private Room Management</p>
+               </div>
+            )}
         </div>
       </div>
     );

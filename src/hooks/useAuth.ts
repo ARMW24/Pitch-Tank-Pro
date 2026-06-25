@@ -7,16 +7,31 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const handleAuthCheck = async (session: any) => {
+      const email = session?.user?.email;
+      if (email) {
+        const allowedStr = import.meta.env.VITE_ALLOWED_EMAILS || '';
+        const allowedList = allowedStr.split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean);
+        if (allowedList.length > 0 && !allowedList.includes(email.toLowerCase())) {
+          await supabase.auth.signOut();
+          setUser(null);
+          setLoading(false);
+          window.dispatchEvent(new CustomEvent('auth-unauthorized', { detail: email }));
+          return;
+        }
+      }
       setUser(session?.user ?? null);
       setLoading(false);
+    };
+
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleAuthCheck(session);
     });
 
     // Listen for changes on auth state (sign in, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+      handleAuthCheck(session);
     });
 
     return () => subscription.unsubscribe();
