@@ -19,7 +19,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCance
     if (project) {
       setLocalAccessCodeRequired(project.accessCodeRequired !== false);
     }
-  }, [project]);
+  }, [project, project?.accessCodeRequired]);
 
   if (!isOpen || !project) return null;
   const url = window.location.origin + window.location.pathname + '?room=' + project.id;
@@ -33,7 +33,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, project, onCance
 
   return (
     <div className="fixed inset-0 bg-[#F4F4F1]/90 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white border-2 border-black p-10 max-w-sm w-full shadow-[8px_8px_0_0_#000] rounded-none flex flex-col">
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white border-2 border-black p-8 md:p-10 max-w-sm w-full max-h-[90vh] overflow-y-auto custom-scrollbar-vertical shadow-[8px_8px_0_0_#000] rounded-none flex flex-col">
         <h3 className="text-2xl font-serif font-black text-black mb-6 italic uppercase">Share Room</h3>
         
         <div className="space-y-6">

@@ -491,6 +491,7 @@ function App() {
               onRenameProject={(pid, newName) => updateProject(pid, { name: newName })}
               onOpenProject={(pid) => { setActivePid(pid); setView('editor'); }}
               onPreviewProject={(pid) => { setActivePid(pid); setView('preview'); }}
+              onShareProject={(p) => { setProjectToEdit(p); setIsShareModalOpen(true); }}
               findProjectByPin={findProjectByPin}
               onLogout={handleSignOut}
               onUpdateProject={updateProject}
@@ -709,7 +710,7 @@ function App() {
       
       <ShareModal 
         isOpen={isShareModalOpen} 
-        project={projectToEdit} 
+        project={activeProject || projectToEdit} 
         onCancel={() => setIsShareModalOpen(false)} 
         onUpdateProject={updateProject}
       />

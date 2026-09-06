@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Layers, Copy, Trash2, LayoutDashboard, Search, LogOut, Edit3, Download } from 'lucide-react';
+import { Plus, Layers, Copy, Trash2, LayoutDashboard, Search, LogOut, Edit3, Download, Share2 } from 'lucide-react';
 import { Project } from '../../hooks/useProjects';
 import { User } from '@supabase/supabase-js';
 
@@ -13,6 +13,7 @@ interface DashboardViewProps {
   onRenameProject: (projectId: string, newName: string) => void;
   onOpenProject: (projectId: string) => void;
   onPreviewProject: (projectId: string) => void;
+  onShareProject?: (project: Project) => void;
   findProjectByPin: (pin: string) => Promise<string | null>;
   onLogout: () => void;
   onUpdateProject: (projectId: string, updates: any, options?: { immediate?: boolean }) => void;
@@ -28,6 +29,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onRenameProject,
   onOpenProject,
   onPreviewProject,
+  onShareProject,
   findProjectByPin,
   onLogout,
   onUpdateProject
@@ -117,6 +119,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {projects.map(project => (
               <div key={project.id} className="bg-white min-h-[320px] p-6 lg:p-8 border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] hover:translate-y-[4px] hover:translate-x-[4px] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all group relative flex flex-col justify-between rounded-none overflow-hidden">
                 <div className="absolute top-0 right-0 flex border-b-2 border-l-2 border-black bg-white group-hover:bg-[#F4F4F1] transition-colors">
+                    {onShareProject && (
+                      <button onClick={(e) => {
+                        e.stopPropagation();
+                        onShareProject(project);
+                      }} className="p-3 border-r-2 border-black text-black hover:bg-black hover:text-white transition-colors" title="Share Room"><Share2 size={16} /></button>
+                    )}
                     <button onClick={(e) => {
                       e.stopPropagation();
                       handleExport(project);
